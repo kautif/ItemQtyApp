@@ -34,7 +34,12 @@
           "imageWidth": 76
         }
       ],
-      "expo-build-properties",
+      [
+        "expo-build-properties",
+        {
+          "android": { "usesCleartextTraffic": true }
+        }
+      ],
       "expo-asset"
     ],
     "experiments": {
