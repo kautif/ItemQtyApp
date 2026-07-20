@@ -14,10 +14,10 @@ export default function HomeScreen() {
   return (
     <NavigationIndependentTree>
       <Stack.Navigator>
-        <Stack.Screen name="Scan" component={Scan} options={{orientation: 'portrait_up'}}></Stack.Screen>
-        <Stack.Screen name="Menu" component={Menu} options={{orientation: 'portrait_up'}}></Stack.Screen>
-        <Stack.Screen name="Scan Item" component={ScanItem} options={{orientation: 'portrait_up'}}></Stack.Screen>
-        <Stack.Screen name="Storage" component={Storage} options={{orientation: 'portrait_up'}}></Stack.Screen>
+        <Stack.Screen name="Scan" component={Scan} options={{headerShown: false, orientation: 'portrait_up'}}></Stack.Screen>
+        <Stack.Screen name="Menu" component={Menu} options={{headerShown: false, orientation: 'portrait_up'}}></Stack.Screen>
+        <Stack.Screen name="Scan Item" component={ScanItem} options={{headerShown: false, orientation: 'portrait_up'}}></Stack.Screen>
+        <Stack.Screen name="Storage" component={Storage} options={{headerShown: false, orientation: 'portrait_up'}}></Stack.Screen>
       </Stack.Navigator>
     </NavigationIndependentTree>
   );
