@@ -1,14 +1,15 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { ImageBackground, ScrollView, StyleSheet, Text, TextInput, Touchable, TouchableOpacity, View } from 'react-native';
 import axios from 'axios';
-import {Calendar} from 'react-native-calendars';
-import { useDispatch, useSelector } from 'react-redux';
-import Dropdown, { DropdownSelect } from 'react-native-input-select';
-import { current } from '@reduxjs/toolkit';
+import React, { useEffect, useState } from 'react';
+import { ImageBackground, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Calendar } from 'react-native-calendars';
+import Dropdown from 'react-native-input-select';
+import { useSelector } from 'react-redux';
+import useResponsive from '../hooks/useResponsive';
 
 const ghraDark = require('../../assets/images/ghra_dark.jpg');
 
 const Storage = ({}) => {
+    const { rs, wp } = useResponsive();
     const currentDate = new Date;
     const pallets = useSelector(state => state.items.pallets);
     const employeeId = useSelector(state => state.items.employeeId);
@@ -32,34 +33,6 @@ const Storage = ({}) => {
     let yearOptions = [];
     let response;
 
-//     async function updatePallet() {
-//         console.log("response body: ", {
-//                 token: 'Yh2k7QSu4l8CZg5p6X3Pna9L0Miy4D3Bvt0JVr87UcOj69Kqw5R2Nmf4FWs03Hdx',
-//                 employeeId: employeeId,
-//                 palletDataId: selectedPallet.palletDataId,
-//                 itemID: itemId,
-//                 expiryDate: defaultDate,
-//                 quantity: binQty
-//             })
-//         try {
-//             response = await axios.post('http://192.168.2.165:81/api/Item/updateItemPalletQuantityAdjustment', {
-//                 token: 'Yh2k7QSu4l8CZg5p6X3Pna9L0Miy4D3Bvt0JVr87UcOj69Kqw5R2Nmf4FWs03Hdx',
-//                 employeeId: employeeId,
-//                 palletDataId: selectedPallet,
-//                 itemID: itemId,
-//                 expiryDate: defaultDate,
-//                 quantity: binQty
-//             })
-//             setTest(response);
-//    console.log("updatePallet: ", response);
-//         } catch (err) {
-//             console.error("ERROR: ", err);
-//             console.log("test: ", test);
-//         } finally {
-//             // console.log("pallet result: ", response);
-//         }
-//     }
-
 const updatePallet = async (palletId) => {
         return axios.post('http://192.168.2.165:81/api/Item/updateItemPalletQuantityAdjustment', {
                 token: 'Yh2k7QSu4l8CZg5p6X3Pna9L0Miy4D3Bvt0JVr87UcOj69Kqw5R2Nmf4FWs03Hdx',
@@ -79,9 +52,6 @@ const updatePallet = async (palletId) => {
         yearOptions.push({label: (currentDate.getFullYear() + i).toString(), value: currentDate.getFullYear() + i});
     }
 
-    // const currentMonth = new Date.getMonth();
-    // const currentYear = new Date.getFullYear();
-
     let palletIdArr = [];
 
     useEffect(() => {
@@ -98,10 +68,6 @@ const updatePallet = async (palletId) => {
     }, [pallets])
 
     useEffect(() => {
-        // if (scannedPallet.length > 0 && palletIdArr.includes(scannedPallet)) {
-        //     console.log("pallet index: ", palletIdArr.indexOf(scannedPallet));
-        //     console.log("pallet found: ", palletIdArr[palletIdArr.indexOf(scannedPallet)]);
-        // }
     }, [scannedPallet])
 
     useEffect(() => {
@@ -109,18 +75,16 @@ const updatePallet = async (palletId) => {
     }, [defaultDate])
     return (
         <ImageBackground source={ghraDark} style={styles.backgroundImage}>
-            <ScrollView style={{marginBottom: 40}}>
+            <ScrollView style={{marginBottom: 40}} contentContainerStyle={{ paddingHorizontal: '4%' }}>
                 <TextInput 
                     placeholder='Scan Pallet'
                     placeholderTextColor={'#fff'}
                     autoFocus={true}
-                    style={{...styles.qtyInput, textAlign: 'center', marginTop: 40}}
+                    style={[styles.qtyInput, { textAlign: 'center', marginTop: rs(40), width: wp(50), maxWidth: rs(200), fontSize: rs(20) }]}
                     value={scannedPallet}
                     onChangeText={(text) => {
                         setScannedPallet(text);
                         if (palletIdArr.includes(parseInt(text))) {
-                            // console.log("pallet index: ", palletIdArr.indexOf(parseInt(text)));
-                            // console.log("pallet: ", pallets[palletIdArr.indexOf(parseInt(text))]);
                             setPalletIndex(palletIdArr.indexOf(parseInt(text)));
                             setSelectedPallet(pallets[palletIdArr.indexOf(parseInt(text))]);
                             setBinQty(pallets[palletIdArr.indexOf(parseInt(text))].quantity);
@@ -128,37 +92,37 @@ const updatePallet = async (palletId) => {
                     }}
                 />
                     {selectedPallet &&
-                        <View style={{ backgroundColor: '#2b2b2b', borderColor: '#5f5f5f', borderWidth: 1, borderRadius: 10, padding: 10, marginTop: 20}}>
+                        <View style={{ backgroundColor: '#2b2b2b', borderColor: '#5f5f5f', borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(20)}}>
                             <TouchableOpacity onPress={() => {
                                 if (!showQty) {
                                     setVerifyPallet(true);
                                 }
                             }}>
                                 <View style={{display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-between'}}>
-                                    <Text style={{color: '#979595', marginLeft: 10}}>Pallet Location</Text>
+                                    <Text style={{color: '#979595', marginLeft: 10, fontSize: rs(14)}}>Pallet Location</Text>
                                     <View style={styles.palletTag}>
-                                        <Text style={{color: '#28dba3'}}>#{selectedPallet.palletId}</Text>
+                                        <Text style={{color: '#28dba3', fontSize: rs(14)}}>#{selectedPallet.palletId}</Text>
                                     </View>
                                 </View>
-                                <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-around', marginTop: 10}}>
+                                <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-around', marginTop: 10, flexWrap: 'wrap'}}>
                                     <View>
-                                        <Text style={styles.palletCol}>LOCATION NAME</Text>
-                                        <Text style={styles.palletRow}>{selectedPallet.binNumber}</Text>
+                                        <Text style={[styles.palletCol, { fontSize: rs(12) }]}>LOCATION NAME</Text>
+                                        <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{selectedPallet.binNumber}</Text>
                                     </View>
                                     <View>
-                                        <Text style={styles.palletCol}>QUANTITY</Text>
-                                        <Text style={styles.palletRow}>{selectedPallet.quantity}</Text>
+                                        <Text style={[styles.palletCol, { fontSize: rs(12) }]}>QUANTITY</Text>
+                                        <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{selectedPallet.quantity}</Text>
                                     </View>
                                     <View>
-                                        <Text style={styles.palletCol}>EXPIRATION</Text>
-                                        <Text style={styles.palletRow}>{selectedPallet.expiryDate}</Text>
+                                        <Text style={[styles.palletCol, { fontSize: rs(12) }]}>EXPIRATION</Text>
+                                        <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{selectedPallet.expiryDate}</Text>
                                     </View>
                                 </View>
                             </TouchableOpacity>
                             {verifyPallet && <View>
-                                    <Text style={{color: 'white', marginTop: 20}}>Scan the pallet barcode or enter the pallet number to unlock editing</Text>
+                                    <Text style={{color: 'white', marginTop: 20, fontSize: rs(14)}}>Scan the pallet barcode or enter the pallet number to unlock editing</Text>
                                     <TextInput 
-                                        style={{...styles.qtyInput, marginTop: 20}} placeholder='|||| Pallet Number'
+                                        style={[styles.qtyInput, { marginTop: rs(20), width: wp(50), maxWidth: rs(200), fontSize: rs(16) }]} placeholder='|||| Pallet Number'
                                         autoFocus={true}
                                         onChangeText={(text) => {
                                             if (parseInt(text) === selectedPallet.palletId) {
@@ -168,69 +132,61 @@ const updatePallet = async (palletId) => {
                                         }}    
                                     />
                                     <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-around'}}>
-                                        <TouchableOpacity style={styles.applyBtn}>
-                                            <Text style={styles.qtyBtnText}>Verify</Text>
+                                        <TouchableOpacity style={[styles.applyBtn, { padding: rs(10), borderRadius: rs(8) }]}>
+                                            <Text style={[styles.qtyBtnText, { fontSize: rs(15) }]}>Verify</Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity 
-                                            style={styles.applyBtn}
+                                            style={[styles.applyBtn, { padding: rs(10), borderRadius: rs(8) }]}
                                             onPress={() => {
                                                 setVerifyPallet(false);
                                             }}
                                         >
-                                            <Text style={styles.qtyBtnText}>Cancel</Text>
+                                            <Text style={[styles.qtyBtnText, { fontSize: rs(15) }]}>Cancel</Text>
                                         </TouchableOpacity>
                                     </View>
                             </View>}
 
                             {showQty && <View style={styles.itemDetailFlex}>
-                                {/* <Text style={styles.itemDetailsHead}>Quantity</Text> */}
                                     <View style={{...styles.textGroup, width: '100%', marginVertical: 20}}>
                                         <View>
-                                            <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-                                                <TouchableOpacity style={{...styles.qtyBtn, alignItems: 'center', marginVertical: 'auto'}} onPress={() => {
+                                            <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
+                                                <TouchableOpacity style={[styles.qtyBtn, { width: rs(50), height: rs(50), alignItems: 'center', justifyContent: 'center' }]} onPress={() => {
                                                     setBinQty(prevQty => {
                                                         return prevQty - 1;
                                                     })
-                                                }}><Text style={{...styles.qtyBtnText, fontSize: 30}}>-</Text></TouchableOpacity>
+                                                }}><Text style={[styles.qtyBtnText, { fontSize: rs(30) }]}>-</Text></TouchableOpacity>
                                                 <TextInput 
-                                                    style={{...styles.qtyInput, color: '#fff', textAlign: 'center', padding: 10}} placeholder={binQty.toString()} 
+                                                    style={[styles.qtyInput, { color: '#fff', textAlign: 'center', padding: rs(10), width: wp(45), maxWidth: rs(200), fontSize: rs(16) }]} placeholder={binQty.toString()} 
                                                     keyboardType='numeric'
                                                     onChangeText={(text) => {
                                                         setBinQty(parseInt(text));
                                                     }}    
                                                 />
-                                                <TouchableOpacity style={styles.qtyBtn} onPress={() => {
+                                                <TouchableOpacity style={[styles.qtyBtn, { width: rs(50), height: rs(50), alignItems: 'center', justifyContent: 'center' }]} onPress={() => {
                                                     setBinQty(prevQty => {
                                                         return prevQty + 1;
                                                     })
-                                                }}><Text style={{...styles.qtyBtnText, fontSize: 30}}>+</Text></TouchableOpacity>
+                                                }}><Text style={[styles.qtyBtnText, { fontSize: rs(30) }]}>+</Text></TouchableOpacity>
                                             </View>
                                             <View>
-                                                <Text style={{color: '#929292', textAlign: 'center', marginTop: 10}}>{binQty < selectedPallet.quantity ? `Deducting ${binQty - selectedPallet.quantity}`
+                                                <Text style={{color: '#929292', textAlign: 'center', marginTop: 10, fontSize: rs(13)}}>{binQty < selectedPallet.quantity ? `Deducting ${binQty - selectedPallet.quantity}`
                                                 : binQty > selectedPallet.quantity ? `Adding ${binQty - selectedPallet.quantity}` : ""}</Text>
 
-                                                {/* <TouchableOpacity
-                                                    onPress={() => {
-                                                        setDefaultDate(new Date(2030, 1, 1));
-                                                    }}
-                                                >
-                                                    <Text style={{color: 'white'}}>2030</Text>
-                                                </TouchableOpacity> */}
                                                 <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '100%'}}>
                                                     <View style={{width: '50%'}}>
-                                                        <Text style={{ fontSize: 20, color: '#fff', textAlign: 'center', marginBottom: 10}}>Year</Text>
+                                                        <Text style={{ fontSize: rs(18), color: '#fff', textAlign: 'center', marginBottom: 10}}>Year</Text>
                                                         <Dropdown 
                                                             dropdownStyle={{
-                                                                height: 50,
+                                                                height: rs(50),
                                                                 width: '95%'
                                                             }}
                                                             dropdownIconStyle={{
-                                                                top: 35,
-                                                                left: 120
+                                                                top: rs(35),
+                                                                left: rs(120)
                                                             }}
                                                             
                                                             placeholder='Select Year'
-                                                            placeholderStyle={{'color': 'blue', fontSize: 20}}
+                                                            placeholderStyle={{'color': 'blue', fontSize: rs(18)}}
                                                             options={yearOptions}
                                                             selectedValue={selectedYear}
                                                             onValueChange={(val) => {
@@ -240,19 +196,19 @@ const updatePallet = async (palletId) => {
                                                         />
                                                     </View>
                                                     <View style={{width: '50%'}}>
-                                                        <Text style={{ fontSize: 20, color: '#fff', textAlign: 'center', marginBottom: 10}}>Month</Text>
+                                                        <Text style={{ fontSize: rs(18), color: '#fff', textAlign: 'center', marginBottom: 10}}>Month</Text>
                                                         <Dropdown 
                                                             dropdownStyle={{
-                                                                height: 50,
+                                                                height: rs(50),
                                                                 width: '95%'
                                                             }}
                                                             dropdownIconStyle={{
-                                                                top: 35,
-                                                                left: 120
+                                                                top: rs(35),
+                                                                left: rs(120)
                                                             }}
                                                             
                                                             placeholder='Select Year'
-                                                            placeholderStyle={{'color': 'blue', fontSize: 20}}
+                                                            placeholderStyle={{'color': 'blue', fontSize: rs(18)}}
                                                             options={[
                                                                 {label: 'January', value: 0},
                                                                 {label: 'February', value: 1},
@@ -282,7 +238,6 @@ const updatePallet = async (palletId) => {
                                                    onDayPress={(day) => {
                                                     setSelected(day.dateString);
                                                     console.log("day: ", day);
-                                                    // setSelectedDay(day)
                                                     setDefaultDate(`${day.dateString}`)
                                                    }}
                                                    markedDates={{
@@ -292,35 +247,23 @@ const updatePallet = async (palletId) => {
                                                 />
 
                                                 <View style={{display: 'flex', flexDirection: 'row'}}>
-                                                    <TouchableOpacity style={{...styles.applyBtn, marginTop: 20, width: '40%', marginHorizontal: 'auto'}}
+                                                    <TouchableOpacity style={[styles.applyBtn, { marginTop: 20, width: '40%', marginHorizontal: 'auto', padding: rs(10), borderRadius: rs(8) }]}
                                                     onPress={() => {
-                                                        // updateBinQty(itemObj[0].primaryBin, whQty - itemObj[0].primaryBinQuantity);
                                                         updatePallet(selectedPallet.palletDataId);
                                                     }}>
-                                                        <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center'}}>Apply</Text>
+                                                        <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Apply</Text>
                                                     </TouchableOpacity>
 
-                                                    <TouchableOpacity style={{...styles.applyBtn, marginTop: 20, width: '40%', marginHorizontal: 'auto', backgroundColor: 'red'}}
+                                                    <TouchableOpacity style={[styles.applyBtn, { marginTop: 20, width: '40%', marginHorizontal: 'auto', backgroundColor: 'red', padding: rs(10), borderRadius: rs(8) }]}
                                                     onPress={() => {
                                                         setShowQty(false);
-                                                        // updateBinQty(itemObj[0].primaryBin, whQty - itemObj[0].primaryBinQuantity);
                                                     }}>
-                                                        <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center'}}>Cancel</Text>
+                                                        <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Cancel</Text>
                                                     </TouchableOpacity>
 
                                                 </View>
                                             </View>
                                         </View>
-                                            {/* <View>
-                                                <TouchableOpacity style={styles.applyBtn} onPress={() => {
-                                                    updateBinQty(itemObj[0].itemData.primaryBin)
-                                                }}>
-                                                    <Text style={{color: '#ffffff', fontWeight: 'bold'}}>Apply</Text>
-                                                </TouchableOpacity>
-                                                <Text style={{color: '#969696', marginVertical: 10}} onPress={() => {
-                                                    setEditWHQty(false);
-                                                }}>Cancel</Text>
-                                            </View> */}
                                     </View>
                             </View>}
                         </View>}
@@ -338,11 +281,8 @@ const styles = StyleSheet.create({
         borderColor: "#1D9E75",
         borderWidth: 1,
         borderRadius: 10,
-        width: 200,
         marginHorizontal: 'auto',
         backgroundColor: '#6160605d', 
-        // marginTop: 40,
-        fontSize: 20
     },
     palletTag: {
         backgroundColor: "#1d9e7580",
@@ -363,13 +303,10 @@ const styles = StyleSheet.create({
     },
     qtyBtnText: {
         color: '#fff', 
-        fontSize: 15, 
         textAlign: 'center'
     },
     applyBtn: {
         backgroundColor: "#1D9E75",
-        padding: 10,
-        borderRadius: 8,
         marginTop: 20
     },
     itemDetailFlex: {
@@ -379,8 +316,6 @@ const styles = StyleSheet.create({
     },  
     qtyBtn: {
         backgroundColor: '#131212', 
-        width: 50,
-        height: 50,
         borderWidth: 1, 
         borderRadius: 8, 
         borderColor: '#525252'

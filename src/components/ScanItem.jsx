@@ -4,12 +4,15 @@ import React, { useEffect, useState } from 'react';
 import { Image, ImageBackground, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { setItemId, setItems, setPallets } from '../../redux/itemSlice';
+import useResponsive from '../hooks/useResponsive';
 
 const ghraDark = require('../../assets/images/ghra_dark.jpg');
 const pencil = require('../../assets/images/pencil.png');
 
 const ScanItem = ({}) => {
     const dispatch = useDispatch();
+    const { rs, wp, hp } = useResponsive();
+
     const [item, setItem] = useState('');
     const [itemObj, setItemObj] = useState();
     const [palletCount, setPalletCount] = useState(0);
@@ -126,9 +129,9 @@ const ScanItem = ({}) => {
             visible={verifyWHLoc}
             onRequestClose={() => {
             }}>
-                <View style={{backgroundColor: '#000000bb', width: '90%', marginHorizontal: 'auto', marginTop: 200, height: 200, padding: 10, borderRadius: 10, borderWidth: 1, borderColor: '#808080'}}>
-                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: 20}}>Verify Location</Text>
-                    <TextInput style={{color: 'white', borderColor: "#1D9E75", borderWidth: 1, borderRadius: 10, padding: 10, marginTop: 10}} placeholder='Scan Location' placeholderTextColor={'#fff'} showSoftInputOnFocus={false} autoFocus={true} onChangeText={(text) => {
+                <View style={{backgroundColor: '#000000bb', width: '90%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(200), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
+                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>Verify Location</Text>
+                    <TextInput style={{color: 'white', borderColor: "#1D9E75", borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(10), fontSize: rs(16)}} placeholder='Scan Location' placeholderTextColor={'#fff'} showSoftInputOnFocus={false} autoFocus={true} onChangeText={(text) => {
                         // console.log("Verify WH Text: ", text);
                         setVerifyWHText(text);
                         if (text === itemObj[0].primaryBin) {
@@ -136,12 +139,12 @@ const ScanItem = ({}) => {
                             setVerifyWHLoc(false);
                         }
                     }}/>
-                    <View style={{backgroundColor: '#ff0000', width: 100, padding: 10, borderRadius: 8, marginHorizontal: 'auto', marginTop: 20}}>
+                    <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
                         <TouchableOpacity onPress={() => {
                             setVerifyWHLoc(false);
                             setEditWHQty(false);
                         }}>
-                            <Text style={{color: '#fff', textAlign: 'center', fontSize: 20, fontWeight: 'bold'}}>Cancel</Text>
+                            <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(20), fontWeight: 'bold'}}>Cancel</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -152,9 +155,9 @@ const ScanItem = ({}) => {
             visible={verifyCCLoc}
             onRequestClose={() => {
             }}>
-                <View style={{backgroundColor: '#000000bb', width: '90%', marginHorizontal: 'auto', marginTop: 200, height: 200, padding: 10, borderRadius: 10, borderWidth: 1, borderColor: '#808080'}}>
-                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: 20}}>Verify Location</Text>
-                    <TextInput style={{color: 'white', borderColor: "#1D9E75", borderWidth: 1, borderRadius: 10, padding: 10, marginTop: 10}} placeholder='Scan Location' placeholderTextColor={'#fff'} showSoftInputOnFocus={false} autoFocus={true} onChangeText={(text) => {
+                <View style={{backgroundColor: '#000000bb', width: '90%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(200), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
+                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>Verify Location</Text>
+                    <TextInput style={{color: 'white', borderColor: "#1D9E75", borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(10), fontSize: rs(16)}} placeholder='Scan Location' placeholderTextColor={'#fff'} showSoftInputOnFocus={false} autoFocus={true} onChangeText={(text) => {
                         // console.log("Verify WH Text: ", text);
                         setVerifyCCText(text);
                         if (text === itemObj[0].secondaryBin) {
@@ -163,12 +166,12 @@ const ScanItem = ({}) => {
                             setVerifyCCText(text);
                         }
                     }}/>
-                    <View style={{backgroundColor: '#ff0000', width: 100, padding: 10, borderRadius: 8, marginHorizontal: 'auto', marginTop: 20}}>
+                    <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
                         <TouchableOpacity onPress={() => {
                             setVerifyCCLoc(false);
                             setEditCCQty(false);
                         }}>
-                            <Text style={{color: '#fff', textAlign: 'center', fontSize: 20, fontWeight: 'bold'}}>Cancel</Text>
+                            <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(20), fontWeight: 'bold'}}>Cancel</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -180,70 +183,70 @@ const ScanItem = ({}) => {
                 onRequestClose={() => {
                     setItem('');
             }}>
-                <View style={{backgroundColor: '#000000bb', width: '70%', marginHorizontal: 'auto', marginTop: 200, height: 125, padding: 10, borderRadius: 10, borderWidth: 1, borderColor: '#808080'}}>
-                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: 20}}>Invalid Item</Text>
-                    <View style={{backgroundColor: '#ff0000', width: 100, padding: 10, borderRadius: 8, marginHorizontal: 'auto', marginTop: 20}}>
+                <View style={{backgroundColor: '#000000bb', width: '70%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(125), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
+                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>Invalid Item</Text>
+                    <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
                         <TouchableOpacity onPress={() => {
                             setErrorVisible(false);
                         }}>
-                            <Text style={{color: '#fff', textAlign: 'center', fontSize: 20, fontWeight: 'bold'}}>Close</Text>
+                            <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(20), fontWeight: 'bold'}}>Close</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
             </Modal>
                 {!itemObj &&
-                 <View style={{position: 'relative', top: 400}}>
-                    <TextInput placeholder='|||| Item number or UPC' placeholderTextColor={'#919191'} style={styles.skuInput} showSoftInputOnFocus={false} autoFocus={true} value={item} onChangeText={(text) => {
+                 <View style={{flex: 1, justifyContent: 'center', paddingHorizontal: '5%'}}>
+                    <TextInput placeholder='|||| Item number or UPC' placeholderTextColor={'#919191'} style={[styles.skuInput, { padding: rs(25), fontSize: rs(20), height: rs(75), borderRadius: rs(15) }]} showSoftInputOnFocus={false} autoFocus={true} value={item} onChangeText={(text) => {
                         setItem(text);
                     }} />
-                    <Text style={{color: '#8f8f8f', textAlign: 'center', marginTop: 20}}>Scan item or type. Press Enter.</Text>
+                    <Text style={{color: '#8f8f8f', textAlign: 'center', marginTop: rs(20), fontSize: rs(14)}}>Scan item or type. Press Enter.</Text>
                 </View>}
                 {itemObj !== undefined && 
                     <ScrollView>
-                        <View style={{marginBottom: 100}}>
-                            <Image source={{uri: itemObj[0].itemUrl}} style={styles.productImg}/>
+                        <View style={{marginBottom: rs(100)}}>
+                            <Image source={{uri: itemObj[0].itemUrl}} style={[styles.productImg, { height: hp(28) }]}/>
                             <View style={styles.itemOverview}>
-                                <Text style={styles.sku}>SKU {itemObj[0].sku}</Text>
-                                <Text style={styles.itemDesc}>{itemObj[0].description}</Text>
-                                <Text style={styles.categoryTag}>{itemObj[0].department}</Text>
+                                <Text style={[styles.sku, { fontSize: rs(14), margin: rs(10) }]}>SKU {itemObj[0].sku}</Text>
+                                <Text style={[styles.itemDesc, { fontSize: rs(15) }]}>{itemObj[0].description}</Text>
+                                <Text style={[styles.categoryTag, { fontSize: rs(13), paddingVertical: rs(4) }]}>{itemObj[0].department}</Text>
                             </View>
                             <View>
                                 <View style={{...styles.itemOverview, marginTop: 10, paddingBottom: 0, borderTopEndRadius: 10, borderTopLeftRadius: 10, }}>
                                     <View style={styles.itemDetailFlex}>
-                                        <Text style={{...styles.itemDetailsHead}}>Quantity on Hand (QOH)</Text>
-                                        <Text style={styles.itemQty}>{itemObj[0].quantity}</Text>
+                                        <Text style={[styles.itemDetailsHead, { fontSize: rs(13) }]}>Quantity on Hand (QOH)</Text>
+                                        <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{itemObj[0].quantity}</Text>
                                     </View>
                                     <View style={styles.itemDetailFlex}>
-                                        <Text style={styles.itemDetailsHead}>Bins total (WH + C/C + Storage + Fulfilled)</Text>
-                                        <Text style={styles.itemQty}>{calcBin(itemObj[0].primaryBinQuantity, itemObj[0].secondaryBinQuantity, itemObj[0].fulfillQuantity)}</Text>
+                                        <Text style={[styles.itemDetailsHead, { fontSize: rs(13) }]}>Bins total (WH + C/C + Storage + Fulfilled)</Text>
+                                        <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{calcBin(itemObj[0].primaryBinQuantity, itemObj[0].secondaryBinQuantity, itemObj[0].fulfillQuantity)}</Text>
                                     </View>
                                     {
                                         calcBin(itemObj[0].primaryBinQuantity, itemObj[0].secondaryBinQuantity, itemObj[0].fulfillQuantity) < 0 && <View style={styles.itemDiscrepancy}>
-                                        <Text style={styles.itemDiscrepancyText}>BIN DISCREPANCY - bins under by {calcDiff(itemObj[0].quantity, calcBin(itemObj[0].primaryBinQuantity, itemObj[0].secondaryBinQuantity, itemObj[0].fulfillQuantity))}</Text>
+                                        <Text style={[styles.itemDiscrepancyText, { fontSize: rs(13) }]}>BIN DISCREPANCY - bins under by {calcDiff(itemObj[0].quantity, calcBin(itemObj[0].primaryBinQuantity, itemObj[0].secondaryBinQuantity, itemObj[0].fulfillQuantity))}</Text>
                                     </View>
                                     }
                                     {
                                         calcBin(itemObj[0].primaryBinQuantity, itemObj[0].secondaryBinQuantity, itemObj[0].fulfillQuantity) > 0 && <View style={styles.itemDiscrepancy}>
-                                        <Text style={styles.itemDiscrepancyText}>BIN DISCREPANCY - bins over by {calcDiff(itemObj[0].quantity, calcBin(itemObj[0].primaryBinQuantity, itemObj[0].secondaryBinQuantity, itemObj[0].fulfillQuantity))}</Text>
+                                        <Text style={[styles.itemDiscrepancyText, { fontSize: rs(13) }]}>BIN DISCREPANCY - bins over by {calcDiff(itemObj[0].quantity, calcBin(itemObj[0].primaryBinQuantity, itemObj[0].secondaryBinQuantity, itemObj[0].fulfillQuantity))}</Text>
                                     </View>
                                     }
                                 </View>
                                 <View style={{...styles.itemOverview, marginTop: 10, paddingBottom: 0, borderTopEndRadius: 10, borderTopLeftRadius: 10}}>
                                     <View style={{...styles.itemDetailFlex, flexDirection: 'column'}}>
-                                        <Text style={{...styles.itemDetailsHead, marginBottom: 5, marginLeft: 20}}>Warehouse Location</Text>
-                                        <Text style={{...styles.itemQty, alignSelf: 'flex-start', fontSize: 15, marginTop: 0, marginLeft: 20}}>{itemObj[0].primaryBin}</Text>
+                                        <Text style={[styles.itemDetailsHead, { marginBottom: 5, marginLeft: 20, fontSize: rs(13) }]}>Warehouse Location</Text>
+                                        <Text style={[styles.itemQty, { alignSelf: 'flex-start', fontSize: rs(15), marginTop: 0, marginLeft: 20 }]}>{itemObj[0].primaryBin}</Text>
                                     </View>
                                     <View>
                                         {editWHQty === false && <View style={styles.itemDetailFlex}>
-                                            <Text style={styles.itemDetailsHead}>Quantity</Text>
+                                            <Text style={[styles.itemDetailsHead, { fontSize: rs(13) }]}>Quantity</Text>
                                                 <View style={styles.textGroup}>
-                                                    <Text style={styles.itemQty}>{itemObj[0].primaryBinQuantity}</Text>
+                                                    <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{itemObj[0].primaryBinQuantity}</Text>
                                                     <TouchableOpacity onPress={() => {
                                                         setEditWHQty(true);
                                                         setEditCCQty(false);
                                                         setVerifyWHLoc(true);
                                                     }}>
-                                                        <Image style={styles.pencilIcon} source={pencil} />
+                                                        <Image style={[styles.pencilIcon, { width: rs(32), height: rs(32), marginRight: rs(15) }]} source={pencil} />
                                                     </TouchableOpacity>
                                                 </View>
                                         </View>}
@@ -251,15 +254,15 @@ const ScanItem = ({}) => {
                                             {/* <Text style={styles.itemDetailsHead}>Quantity</Text> */}
                                                 <View style={{...styles.textGroup, width: '100%', marginVertical: 20}}>
                                                     <View>
-                                                        <Text style={{color: '#fff', textAlign: 'center'}}>{itemObj[0].primaryBinQuantity}</Text>
-                                                        <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-                                                            <TouchableOpacity style={styles.qtyBtn} onPress={() => {
+                                                        <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(14)}}>{itemObj[0].primaryBinQuantity}</Text>
+                                                        <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
+                                                            <TouchableOpacity style={[styles.qtyBtn, { width: rs(50), height: rs(50) }]} onPress={() => {
                                                                 setWhQty(prevQty => {
                                                                     return prevQty - 1;
                                                                 })
-                                                            }}><Text style={styles.qtyBtnText}>-</Text></TouchableOpacity>
+                                                            }}><Text style={[styles.qtyBtnText, { fontSize: rs(30) }]}>-</Text></TouchableOpacity>
                                                             <TextInput 
-                                                                style={{...styles.qtyInput, color: '#fff', textAlign: 'center', padding: 10}}
+                                                                style={[styles.qtyInput, { color: '#fff', textAlign: 'center', padding: rs(10), width: wp(45), maxWidth: rs(200) }]}
                                                                 placeholder={'Change total quantity'}
                                                                 placeholderTextColor={'#fff'}
                                                                 value={whQty}
@@ -268,53 +271,43 @@ const ScanItem = ({}) => {
                                                                     setWhQty(val);
                                                                 }}   
                                                             />
-                                                            <TouchableOpacity style={styles.qtyBtn} onPress={() => {
+                                                            <TouchableOpacity style={[styles.qtyBtn, { width: rs(50), height: rs(50) }]} onPress={() => {
                                                                 setWhQty(prevQty => {
                                                                     return prevQty + 1;
                                                                 })
-                                                            }}><Text style={styles.qtyBtnText}>+</Text></TouchableOpacity>
+                                                            }}><Text style={[styles.qtyBtnText, { fontSize: rs(30) }]}>+</Text></TouchableOpacity>
                                                         </View>
                                                         <View>
-                                                        <Text style={{color: '#929292', textAlign: 'center', marginTop: 10}}>{whQty < itemObj[0].primaryBinQuantity ? `Deducting ${whQty - itemObj[0].primaryBinQuantity}`
+                                                        <Text style={{color: '#929292', textAlign: 'center', marginTop: 10, fontSize: rs(13)}}>{whQty < itemObj[0].primaryBinQuantity ? `Deducting ${whQty - itemObj[0].primaryBinQuantity}`
                                                          : whQty > itemObj[0].primaryBinQuantity ? `Adding ${whQty - itemObj[0].primaryBinQuantity}` : ""}</Text>
-                                                        <TouchableOpacity style={{...styles.applyBtn, marginTop: 20, width: '50%', marginHorizontal: 'auto'}}
+                                                        <TouchableOpacity style={{...styles.applyBtn, marginTop: 20, width: '50%', marginHorizontal: 'auto', padding: rs(10), borderRadius: rs(8)}}
                                                         onPress={() => {
                                                             updateBinQty(itemObj[0].primaryBin, whQty - itemObj[0].primaryBinQuantity);
                                                         }}>
-                                                            <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center'}}>Apply</Text>
+                                                            <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Apply</Text>
                                                         </TouchableOpacity>
                                                     </View>
                                                     </View>
-                                                        {/* <View>
-                                                            <TouchableOpacity style={styles.applyBtn} onPress={() => {
-                                                                updateBinQty(itemObj[0].itemData.primaryBin)
-                                                            }}>
-                                                                <Text style={{color: '#ffffff', fontWeight: 'bold'}}>Apply</Text>
-                                                            </TouchableOpacity>
-                                                            <Text style={{color: '#969696', marginVertical: 10}} onPress={() => {
-                                                                setEditWHQty(false);
-                                                            }}>Cancel</Text>
-                                                        </View> */}
                                                 </View>
                                         </View>}
                                     </View>
                                 </View>
                                 <View style={{...styles.itemOverview, marginTop: 10, paddingBottom: 0, borderTopEndRadius: 10, borderTopLeftRadius: 10}}>
                                     <View style={{...styles.itemDetailFlex, flexDirection: 'column'}}>
-                                        <Text style={{...styles.itemDetailsHead, marginBottom: 5, marginLeft: 20}}>Cash/Carry Location</Text>
-                                        <Text style={{...styles.itemQty, alignSelf: 'flex-start', fontSize: 15, marginTop: 0, marginLeft: 20}}>{itemObj[0].secondaryBin}</Text>
+                                        <Text style={[styles.itemDetailsHead, { marginBottom: 5, marginLeft: 20, fontSize: rs(13) }]}>Cash/Carry Location</Text>
+                                        <Text style={[styles.itemQty, { alignSelf: 'flex-start', fontSize: rs(15), marginTop: 0, marginLeft: 20 }]}>{itemObj[0].secondaryBin}</Text>
                                     </View>
                                     <View>
                                         {editCCQty === false && <View style={styles.itemDetailFlex}>
-                                            <Text style={styles.itemDetailsHead}>Quantity</Text>
+                                            <Text style={[styles.itemDetailsHead, { fontSize: rs(13) }]}>Quantity</Text>
                                                 <View style={styles.textGroup}>
-                                                    <Text style={styles.itemQty}>{itemObj[0].secondaryBinQuantity}</Text>
+                                                    <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{itemObj[0].secondaryBinQuantity}</Text>
                                                     <TouchableOpacity onPress={() => {
                                                         setEditCCQty(true);
                                                         setEditWHQty(false);
                                                         setVerifyCCLoc(true);
                                                     }}>
-                                                        <Image style={styles.pencilIcon} source={pencil} />
+                                                        <Image style={[styles.pencilIcon, { width: rs(32), height: rs(32), marginRight: rs(15) }]} source={pencil} />
                                                     </TouchableOpacity>
                                                 </View>
                                         </View>}
@@ -322,15 +315,15 @@ const ScanItem = ({}) => {
                                             {/* <Text style={styles.itemDetailsHead}>Quantity</Text> */}
                                                 <View style={{...styles.textGroup, width: '100%', marginVertical: 20}}>
                                                     <View>
-                                                        <Text style={{color: '#fff', textAlign: 'center'}}>{itemObj[0].secondaryBinQuantity}</Text>
-                                                        <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
-                                                            <TouchableOpacity style={styles.qtyBtn} onPress={() => {
+                                                        <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(14)}}>{itemObj[0].secondaryBinQuantity}</Text>
+                                                        <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
+                                                            <TouchableOpacity style={[styles.qtyBtn, { width: rs(50), height: rs(50) }]} onPress={() => {
                                                                 setCcQty(prevQty => {
                                                                     return prevQty - 1;
                                                                 })
-                                                            }}><Text style={styles.qtyBtnText}>-</Text></TouchableOpacity>
+                                                            }}><Text style={[styles.qtyBtnText, { fontSize: rs(30) }]}>-</Text></TouchableOpacity>
                                                             <TextInput 
-                                                                style={{...styles.qtyInput, color: '#fff', textAlign: 'center', padding: 10}}
+                                                                style={[styles.qtyInput, { color: '#fff', textAlign: 'center', padding: rs(10), width: wp(45), maxWidth: rs(200) }]}
                                                                 placeholder={'Change total quantity'}
                                                                 placeholderTextColor={'#fff'}
                                                                 value={ccQty}
@@ -339,35 +332,25 @@ const ScanItem = ({}) => {
                                                                     setCcQty(val);
                                                                 }}   
                                                             />
-                                                            <TouchableOpacity style={styles.qtyBtn} onPress={() => {
+                                                            <TouchableOpacity style={[styles.qtyBtn, { width: rs(50), height: rs(50) }]} onPress={() => {
                                                                 setCcQty(prevQty => {
                                                                     return prevQty + 1;
                                                                 })
-                                                            }}><Text style={styles.qtyBtnText}>+</Text></TouchableOpacity>
+                                                            }}><Text style={[styles.qtyBtnText, { fontSize: rs(30) }]}>+</Text></TouchableOpacity>
                                                         </View>
                                                         <View>
-                                                        <Text style={{color: '#929292', textAlign: 'center', marginTop: 10}}>
+                                                        <Text style={{color: '#929292', textAlign: 'center', marginTop: 10, fontSize: rs(13)}}>
                                                             {ccQty < itemObj[0].secondaryBinQuantity ? `Deducting ${ccQty - itemObj[0].secondaryBinQuantity}`
                                                          : ccQty > itemObj[0].secondaryBinQuantity ? `Adding ${ccQty - itemObj[0].secondaryBinQuantity}` : ""}</Text>
                                                          <TouchableOpacity 
-                                                            style={{...styles.applyBtn, marginTop: 20, width: '50%', marginHorizontal: 'auto'}}
+                                                            style={{...styles.applyBtn, marginTop: 20, width: '50%', marginHorizontal: 'auto', padding: rs(10), borderRadius: rs(8)}}
                                                             onPress={() => {
                                                                 updateBinQty(itemObj[0].secondaryBin, ccQty - itemObj[0].secondaryBinQuantity);
                                                             }}>
-                                                            <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center'}}>Apply</Text>
+                                                            <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Apply</Text>
                                                         </TouchableOpacity>
                                                     </View>
                                                     </View>
-                                                        {/* <View>
-                                                            <TouchableOpacity style={styles.applyBtn} onPress={() => {
-                                                                updateBinQty(itemObj[0].itemData.primaryBin)
-                                                            }}>
-                                                                <Text style={{color: '#ffffff', fontWeight: 'bold'}}>Apply</Text>
-                                                            </TouchableOpacity>
-                                                            <Text style={{color: '#969696', marginVertical: 10}} onPress={() => {
-                                                                setEditWHQty(false);
-                                                            }}>Cancel</Text>
-                                                        </View> */}
                                                 </View>
                                         </View>}
                                     </View>
@@ -377,18 +360,18 @@ const ScanItem = ({}) => {
                                         router.push('storage')
                                     }}>
                                         <View style={{...styles.itemDetailFlex}}>
-                                            <Text style={{...styles.itemDetailsHead, marginBottom: 5}}>Storage</Text>
-                                            <Text style={{...styles.itemQty}}>{palletQty}</Text>
+                                            <Text style={[styles.itemDetailsHead, { marginBottom: 5, fontSize: rs(13) }]}>Storage</Text>
+                                            <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{palletQty}</Text>
                                         </View>
                                         <View style={{...styles.itemDetailFlex, alignSelf: 'flex-end'}}>
-                                            <Text style={{...styles.itemDetailsHead, marginTop: 0}}>{itemObj[0].palletData.length} pallet(s) - tap to view</Text>
+                                            <Text style={[styles.itemDetailsHead, { marginTop: 0, fontSize: rs(13) }]}>{itemObj[0].palletData.length} pallet(s) - tap to view</Text>
                                         </View>
                                     </TouchableOpacity>
                                 </View>
                                 <View style={{...styles.itemOverview, marginTop: 10, paddingBottom: 0, borderTopEndRadius: 10, borderTopLeftRadius: 10, }}>
                                     <View style={{...styles.itemDetailFlex, paddingVertical: 10}}>
-                                        <Text style={{...styles.itemDetailsHead, marginBottom: 5}}>Fulfilled</Text>
-                                        <Text style={{...styles.itemQty}}>{itemObj[0].fulfillQuantity}</Text>
+                                        <Text style={[styles.itemDetailsHead, { marginBottom: 5, fontSize: rs(13) }]}>Fulfilled</Text>
+                                        <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{itemObj[0].fulfillQuantity}</Text>
                                     </View>
                                 </View>
                             </View>
@@ -410,17 +393,12 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         color: 'white',
         backgroundColor: "#282928bf",
-        padding: 25,
-        fontSize: 20,
-        height: 75,
-        borderRadius: 15,
         width: '95%',
         marginLeft: 'auto',
         marginRight: 'auto',
     },
     productImg: {
         width: "100%",
-        height: 250,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20
     },
@@ -434,7 +412,6 @@ const styles = StyleSheet.create({
     },
     sku: {
         color: "#1D9E75",
-        margin: 10,
         marginBottom: 2
     },
     itemDesc: {
@@ -447,7 +424,8 @@ const styles = StyleSheet.create({
         backgroundColor: "#1D9E75",
         color: 'white',
         fontWeight: 'bold',
-        width: 150,
+        alignSelf: 'flex-start',
+        paddingHorizontal: 10,
         textAlign: 'center',
         borderRadius: 5,
         margin: 10
@@ -463,7 +441,6 @@ const styles = StyleSheet.create({
     },
     itemQty: {
         color: '#fff',
-        fontSize: 20,
         fontWeight: 'bold',
         alignSelf: 'center',
         marginRight: 10
@@ -486,11 +463,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-around'
     },
-    pencilIcon: {
-        width: 32,
-        height: 32,
-        marginRight: 15
-    },
+    pencilIcon: {},
     editingBorder: {
         borderColor: "#1D9E75",
         borderWidth: 2,
@@ -498,26 +471,23 @@ const styles = StyleSheet.create({
     },
     qtyBtn: {
         backgroundColor: '#131212', 
-        width: 50, 
         borderWidth: 1, 
         borderRadius: 8, 
-        borderColor: '#525252'
+        borderColor: '#525252',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     qtyBtnText: {
         color: '#fff', 
-        fontSize: 30, 
         textAlign: 'center'
     },
     qtyInput: {
         borderColor: "#1D9E75",
         borderWidth: 1,
         borderRadius: 10,
-        width: 200,
     },
     applyBtn: {
         backgroundColor: "#1D9E75",
-        padding: 10,
-        borderRadius: 8
     }
 
 })

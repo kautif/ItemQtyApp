@@ -3,7 +3,6 @@ import { useAudioPlayer } from 'expo-audio';
 import { router } from 'expo-router';
 import * as ScreenOrientation from "expo-screen-orientation";
 import { useEffect, useRef, useState } from 'react';
-import { setEmployeeId } from '../../redux/itemSlice';
 import {
   Alert,
   Image,
@@ -12,20 +11,19 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  useWindowDimensions,
   View
 } from 'react-native';
 import { useDispatch } from 'react-redux';
+import { setEmployeeId } from '../../redux/itemSlice';
+import useResponsive from '../hooks/useResponsive';
 
 const ghraLogo = require('../../assets/images/WH-New-Logo-PNG-scaled.png');
 
 const Scan = ({ navigation }) => {
   const dispatch = useDispatch();
-  const { width, height } = useWindowDimensions();
 
-  // Scale factor based on a 390px wide baseline (iPhone 14 Pro)
-  const scale = Math.min(width, height) / 390;
-  const rs = (size) => Math.round(size * scale);
+  // Shared scaling hook (same baseline/scale used across every screen).
+  const { rs, wp } = useResponsive();
 
   const player = useAudioPlayer(require('../../assets/sounds/buzzer.mp3'));
   const [badgeId, setBadgeId] = useState('');
@@ -146,7 +144,7 @@ const Scan = ({ navigation }) => {
         {/* ERROR MODAL */}
         <Modal transparent visible={modalVisible} animationType="fade">
           <View style={styles.modalBackdrop}>
-            <View style={styles.modalView}>
+            <View style={[styles.modalView, { width: wp(80), maxWidth: rs(400) }]}>
               <Text style={[styles.modalText, { fontSize: rs(18) }]}>{errorMessage}</Text>
 
               <TouchableOpacity
@@ -163,14 +161,18 @@ const Scan = ({ navigation }) => {
           </View>
         </Modal>
 
-        <Image style={[styles.logo, { width: rs(300), height: rs(300) }]} source={ghraLogo} />
+        <Image
+          style={[styles.logo, { width: rs(400), height: rs(400), maxWidth: wp(100), maxHeight: wp(80) }]}
+          source={ghraLogo}
+          resizeMode="contain"
+        />
 
-        <Text style={styles.version}>Version 1.0</Text>
+        <Text style={[styles.version, { fontSize: rs(12) }]}>Version 1.0</Text>
 
         <View style={styles.scanBox}>
           <TextInput
             ref={inputRef}
-            style={[styles.input, { width: rs(300), height: rs(60), fontSize: rs(16) }]}
+            style={[styles.input, { width: wp(78), maxWidth: rs(300), height: rs(60), fontSize: rs(16) }]}
             value={badgeId}
             autoFocus
             onChangeText={(text) => {
@@ -195,10 +197,10 @@ const Scan = ({ navigation }) => {
             showSoftInputOnFocus={false}
           />
 
-          <Text style={[styles.scanText, { fontSize: rs(25) }]}>Scan GHRA Badge</Text>
+          <Text style={[styles.scanText, { fontSize: rs(22) }]}>Scan GHRA Badge</Text>
 
           <TouchableOpacity
-            style={[styles.clearButton, { width: rs(150), padding: rs(10) }]}
+            style={[styles.clearButton, { width: wp(40), maxWidth: rs(150), padding: rs(10) }]}
             onPress={() => {
               setBadgeId('');
               setLastSubmitted('');
@@ -216,9 +218,11 @@ const Scan = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff', paddingTop: 25 },
   innerContainer: {
-    height: '92%',
+    flex: 1,
     width: '96%',
     alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   logo: { alignSelf: 'center' },
   version: { alignSelf: 'center' },
@@ -226,6 +230,7 @@ const styles = StyleSheet.create({
   scanBox: {
     alignItems: 'center',
     marginTop: 20,
+    width: '100%',
   },
   input: {
     backgroundColor: '#e8e8e8',
@@ -235,6 +240,7 @@ const styles = StyleSheet.create({
   scanText: {
     fontWeight: '800',
     textTransform: 'uppercase',
+    textAlign: 'center',
   },
   clearButton: {
     marginTop: 20,
@@ -258,7 +264,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 30,
     borderRadius: 20,
-    width: '80%',
     alignItems: 'center',
   },
   modalText: {
