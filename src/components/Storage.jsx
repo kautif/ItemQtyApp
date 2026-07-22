@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import { ImageBackground, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ImageBackground, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import Dropdown from 'react-native-input-select';
 import { useSelector } from 'react-redux';
@@ -9,7 +9,7 @@ import useResponsive from '../hooks/useResponsive';
 const ghraDark = require('../../assets/images/ghra_dark.jpg');
 
 const Storage = ({}) => {
-    const { rs, wp } = useResponsive();
+    const { hp, rs, wp } = useResponsive();
     const currentDate = new Date;
     const pallets = useSelector(state => state.items.pallets);
     const employeeId = useSelector(state => state.items.employeeId);
@@ -19,8 +19,18 @@ const Storage = ({}) => {
     const [scannedPallet, setScannedPallet] = useState('');
     const [palletIndex, setPalletIndex] = useState(0);
     const [selectedPallet, setSelectedPallet] = useState();
+    const [verifyPalletText, setVerifyPalletText] = useState('');
+
+    const [confirmVisible, setConfirmVisible] = useState(false);
+    const [confirmMessage, setConfirmMessage] = useState('');
+    
     const [verifyPallet, setVerifyPallet] = useState(false);
     const [showQty, setShowQty] = useState(false);
+    const [showCalendar, setShowCalendar] = useState(false);
+
+    const [errorVisible, setErrorVisible] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+
     const [binQty, setBinQty] = useState(0);
     const [defaultDate, setDefaultDate] = useState(Date.now());
     const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
@@ -40,12 +50,22 @@ const updatePallet = async (palletId) => {
                 palletDataId: palletId,
                 itemID: itemId,
                 expiryDate: defaultDate,
-                quantity: binQty
+                quantity: selectedPallet && (binQty - selectedPallet.quantity)
             }).then(response => {
                 console.log("pallet response: ", response.data);
+                if (response.data.success) {
+                    setConfirmMessage("Pallet Updated");
+                    setConfirmVisible(true);
+                }
             }).catch(err => {
                 console.error(err.response.data.reason);
+                setErrorMessage(err.response.data.reason);
+                setErrorVisible(true);
             })
+    }
+
+    function numberCommaFormat(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
     }
 
     for (let i = 0; i < 10; i++) {
@@ -68,19 +88,69 @@ const updatePallet = async (palletId) => {
     }, [pallets])
 
     useEffect(() => {
-    }, [scannedPallet])
+        if (verifyPallet && selectedPallet) {
+            setDefaultDate(selectedPallet.expiryDate);
+            setSelected(selectedPallet.expiryDate)
+            console.log("pallet default date: ", selectedPallet.expiryDate);
+        }
+    }, [verifyPallet])
 
     useEffect(() => {
         console.log("date updated: ", defaultDate);
     }, [defaultDate])
     return (
         <ImageBackground source={ghraDark} style={styles.backgroundImage}>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={errorVisible}
+                onRequestClose={() => {
+                    setScannedPallet('');
+            }}>
+                <View style={{backgroundColor: '#000000bb', width: '70%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(125), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
+                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{errorMessage}</Text>
+                    <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
+                        <TouchableOpacity onPress={() => {
+                            setScannedPallet('');
+                            setVerifyPalletText('');
+                            setErrorVisible(false);
+                        }}>
+                            <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(20), fontWeight: 'bold'}}>Close</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={confirmVisible}
+                onRequestClose={() => {
+            }}>
+                <View style={{backgroundColor: '#000000bb', width: '70%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(125), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
+                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{confirmMessage}</Text>
+                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{selectedPallet && (binQty < selectedPallet.quantity ? `Deducted ${numberCommaFormat(-1 * (binQty - selectedPallet.quantity))}` : binQty > selectedPallet.quantity ? `Added ${numberCommaFormat(binQty - selectedPallet.quantity)}` : "")}</Text>
+                    <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
+                        <TouchableOpacity onPress={() => {
+                            setConfirmVisible(false);
+                            setShowCalendar(false);
+                            setVerifyPallet(false);
+                            setShowQty(false);
+                            setSelectedPallet('');
+                            setScannedPallet('');
+                            setVerifyPalletText('');
+                        }}>
+                            <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(20), fontWeight: 'bold'}}>Close</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
             <ScrollView style={{marginBottom: 40}} contentContainerStyle={{ paddingHorizontal: '4%' }}>
                 <TextInput 
                     placeholder='Scan Pallet'
-                    placeholderTextColor={'#fff'}
+                    placeholderTextColor={'#919191'}
+                    showSoftInputOnFocus={false}
                     autoFocus={true}
-                    style={[styles.qtyInput, { textAlign: 'center', marginTop: rs(40), width: wp(50), maxWidth: rs(200), fontSize: rs(20) }]}
+                    style={[styles.qtyInput, { textAlign: 'center', color: '#fff', marginTop: rs(40), width: wp(50), maxWidth: rs(200), fontSize: rs(20) }]}
                     value={scannedPallet}
                     onChangeText={(text) => {
                         setScannedPallet(text);
@@ -88,9 +158,26 @@ const updatePallet = async (palletId) => {
                             setPalletIndex(palletIdArr.indexOf(parseInt(text)));
                             setSelectedPallet(pallets[palletIdArr.indexOf(parseInt(text))]);
                             setBinQty(pallets[palletIdArr.indexOf(parseInt(text))].quantity);
+                        } else {
+                            setErrorMessage('Not a valid pallet');
+                            setErrorVisible(true);
                         }
                     }}
                 />
+                <TouchableOpacity 
+                    style={[styles.applyBtn, { padding: rs(10), borderRadius: rs(8), width: '50%', marginHorizontal: 'auto' }]}
+                    onPress={() => {
+                        setConfirmVisible(false);
+                        setShowCalendar(false);
+                        setVerifyPallet(false);
+                        setShowQty(false);
+                        setSelectedPallet('');
+                        setScannedPallet('');
+                        setVerifyPalletText('');
+                    }}
+                    >
+                    <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Clear</Text>
+                </TouchableOpacity>
                     {selectedPallet &&
                         <View style={{ backgroundColor: '#2b2b2b', borderColor: '#5f5f5f', borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(20)}}>
                             <TouchableOpacity onPress={() => {
@@ -111,7 +198,7 @@ const updatePallet = async (palletId) => {
                                     </View>
                                     <View>
                                         <Text style={[styles.palletCol, { fontSize: rs(12) }]}>QUANTITY</Text>
-                                        <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{selectedPallet.quantity}</Text>
+                                        <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{numberCommaFormat(selectedPallet.quantity)}</Text>
                                     </View>
                                     <View>
                                         <Text style={[styles.palletCol, { fontSize: rs(12) }]}>EXPIRATION</Text>
@@ -122,12 +209,19 @@ const updatePallet = async (palletId) => {
                             {verifyPallet && <View>
                                     <Text style={{color: 'white', marginTop: 20, fontSize: rs(14)}}>Scan the pallet barcode or enter the pallet number to unlock editing</Text>
                                     <TextInput 
-                                        style={[styles.qtyInput, { marginTop: rs(20), width: wp(50), maxWidth: rs(200), fontSize: rs(16) }]} placeholder='|||| Pallet Number'
+                                        style={[styles.qtyInput, { marginTop: rs(20), width: wp(50), maxWidth: rs(200), fontSize: rs(16), color: '#fff' }]} placeholder='|||| Pallet Number'
                                         autoFocus={true}
+                                        showSoftInputOnFocus={false}
+                                        placeholderTextColor={'#919191'}
+                                        value={verifyPalletText}
                                         onChangeText={(text) => {
+                                            setVerifyPalletText(text);
                                             if (parseInt(text) === selectedPallet.palletId) {
                                                 setVerifyPallet(false);
                                                 setShowQty(true);
+                                            } else {
+                                                setErrorMessage("Pallet doesn't match");
+                                                setErrorVisible(true);
                                             }
                                         }}    
                                     />
@@ -139,6 +233,7 @@ const updatePallet = async (palletId) => {
                                             style={[styles.applyBtn, { padding: rs(10), borderRadius: rs(8) }]}
                                             onPress={() => {
                                                 setVerifyPallet(false);
+                                                setVerifyPalletText('');
                                             }}
                                         >
                                             <Text style={[styles.qtyBtnText, { fontSize: rs(15) }]}>Cancel</Text>
@@ -156,7 +251,9 @@ const updatePallet = async (palletId) => {
                                                     })
                                                 }}><Text style={[styles.qtyBtnText, { fontSize: rs(30) }]}>-</Text></TouchableOpacity>
                                                 <TextInput 
-                                                    style={[styles.qtyInput, { color: '#fff', textAlign: 'center', padding: rs(10), width: wp(45), maxWidth: rs(200), fontSize: rs(16) }]} placeholder={binQty.toString()} 
+                                                    style={[styles.qtyInput, { color: '#fff', textAlign: 'center', padding: rs(10), width: wp(45), maxWidth: rs(200), fontSize: rs(16) }]} placeholder={binQty.toString()}
+                                                    placeholderTextColor={'#919191'}
+                                                    showSoftInputOnFocus={false} 
                                                     keyboardType='numeric'
                                                     onChangeText={(text) => {
                                                         setBinQty(parseInt(text));
@@ -169,9 +266,18 @@ const updatePallet = async (palletId) => {
                                                 }}><Text style={[styles.qtyBtnText, { fontSize: rs(30) }]}>+</Text></TouchableOpacity>
                                             </View>
                                             <View>
-                                                <Text style={{color: '#929292', textAlign: 'center', marginTop: 10, fontSize: rs(13)}}>{binQty < selectedPallet.quantity ? `Deducting ${binQty - selectedPallet.quantity}`
-                                                : binQty > selectedPallet.quantity ? `Adding ${binQty - selectedPallet.quantity}` : ""}</Text>
+                                                <Text style={{color: '#929292', textAlign: 'center', marginTop: 10, fontSize: rs(13)}}>{binQty < selectedPallet.quantity ? `Deducting ${numberCommaFormat(-1 * (binQty - selectedPallet.quantity))}`
+                                                : binQty > selectedPallet.quantity ? `Adding ${numberCommaFormat(binQty - selectedPallet.quantity)}` : ""}</Text>
 
+                                                <TouchableOpacity 
+                                                    style={[styles.applyBtn, { marginTop: 20, width: '50%', marginHorizontal: 'auto', padding: rs(10), borderRadius: rs(8) }]}
+                                                    onPress={() => {
+                                                        setShowCalendar(!showCalendar);
+                                                    }}
+                                                    >
+                                                    <Text style={{ color: '#fff', fontSize: 15, fontWeight: 'bold', textAlign: 'center' }}>{showCalendar ? "Close" : "Update Expiration"}</Text>
+                                                </TouchableOpacity>
+                                                {showCalendar && <>
                                                 <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '100%'}}>
                                                     <View style={{width: '50%'}}>
                                                         <Text style={{ fontSize: rs(18), color: '#fff', textAlign: 'center', marginBottom: 10}}>Year</Text>
@@ -231,20 +337,18 @@ const updatePallet = async (palletId) => {
                                                         />
                                                     </View>
                                                 </View>
-
-                                                <Calendar 
-                                                   current={defaultDate}
-                                                   key={defaultDate}
-                                                   onDayPress={(day) => {
-                                                    setSelected(day.dateString);
-                                                    console.log("day: ", day);
-                                                    setDefaultDate(`${day.dateString}`)
-                                                   }}
-                                                   markedDates={{
-                                                    [selected]: {selected: true}
-                                                   }}
-                                                   
-                                                />
+                                                    <Calendar 
+                                                    current={defaultDate}
+                                                    key={defaultDate}
+                                                    onDayPress={(day) => {
+                                                        setSelected(day.dateString);
+                                                        console.log("day: ", day);
+                                                        setDefaultDate(`${day.dateString}`)
+                                                    }}
+                                                    markedDates={{
+                                                        [selected]: {selected: true}
+                                                    }}/>
+                                                    </>}
 
                                                 <View style={{display: 'flex', flexDirection: 'row'}}>
                                                     <TouchableOpacity style={[styles.applyBtn, { marginTop: 20, width: '40%', marginHorizontal: 'auto', padding: rs(10), borderRadius: rs(8) }]}
@@ -257,6 +361,7 @@ const updatePallet = async (palletId) => {
                                                     <TouchableOpacity style={[styles.applyBtn, { marginTop: 20, width: '40%', marginHorizontal: 'auto', backgroundColor: 'red', padding: rs(10), borderRadius: rs(8) }]}
                                                     onPress={() => {
                                                         setShowQty(false);
+                                                        setVerifyPalletText('');
                                                     }}>
                                                         <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Cancel</Text>
                                                     </TouchableOpacity>

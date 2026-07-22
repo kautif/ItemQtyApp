@@ -22,6 +22,10 @@ const ScanItem = ({}) => {
     const [ccQty, setCcQty] = useState(0);
 
     const [errorVisible, setErrorVisible] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+
+    const [confirmVisible, setConfirmVisible] = useState(false);
+    const [confirmMessage, setConfirmMessage] = useState('');
 
     const [editWHQty, setEditWHQty] = useState(false);
     const [editCCQty, setEditCCQty] = useState(false);
@@ -56,18 +60,14 @@ const ScanItem = ({}) => {
         // console.log('item data: ', itemObj);
     }, [itemObj])
 
-    async function getItem () {
-        try {
-            const response = await axios.post('http://192.168.2.165:81/api/Item/getItem', {
+    const getItem = async () => {
+        
+            return axios.post('http://192.168.2.165:81/api/Item/getItem', {
                 token: 'Yh2k7QSu4l8CZg5p6X3Pna9L0Miy4D3Bvt0JVr87UcOj69Kqw5R2Nmf4FWs03Hdx',
                 upc: item
-            })
-                // console.log("response: ", response);
-                if (!response.data.success) {
-                    setErrorVisible(true);
-                    setItem('');
-
-                } else {
+            }).then(response => {
+                console.log("RESPONSE: ", response.data);
+                if (response.data.success) {
                     setItemObj(response.data.itemData);
                     dispatch(setItemId(response.data.itemData[0].id));
                     dispatch(setItems(response.data.itemData));
@@ -75,14 +75,19 @@ const ScanItem = ({}) => {
                     setWhQty(response.data.itemData[0].primaryBinQuantity);
                     setCcQty(response.data.itemData[0].secondaryBinQuantity);
                     calcPalletItems(response.data.itemData[0].palletData);
+                } else {
+                    setErrorMessage(response.data.reason);
+                    setErrorVisible(true);
+                    setItem('');
                 }
+            }).catch(err => {
+                // console.log("failed response: ", err);
+            })
+            // console.log("getItem response: ", response.data);
+    }
 
-                // console.log("getItem response: ", response.data);
-        } catch (err) {
-            console.error("ERROR: ", err);
-        } finally {
-            // console.log("RESULT: ", itemObj);
-        }
+    function numberCommaFormat(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
     }
 
     const updateBinQty= async (bin, qty) => {
@@ -98,6 +103,10 @@ const ScanItem = ({}) => {
                 quantity: qty
             }).then(response => {
                 console.log("updateBin: ", response.data);
+                if (response.data.success) {
+                    setConfirmMessage("Quantity updated");
+                    setConfirmVisible(true);
+                }
             }).catch(err => {
                 console.error("ERROR: ", err.response.reason);
             })
@@ -120,6 +129,10 @@ const ScanItem = ({}) => {
         setPalletQty(palletAgg);
     }
 
+    useState(() => {
+        
+    }, [errorVisible])
+
     return (
         <>
             <ImageBackground source={ghraDark} style={styles.backgroundImage}>
@@ -128,21 +141,34 @@ const ScanItem = ({}) => {
             transparent={true}
             visible={verifyWHLoc}
             onRequestClose={() => {
+
             }}>
                 <View style={{backgroundColor: '#000000bb', width: '90%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(200), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
                     <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>Verify Location</Text>
-                    <TextInput style={{color: 'white', borderColor: "#1D9E75", borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(10), fontSize: rs(16)}} placeholder='Scan Location' placeholderTextColor={'#fff'} showSoftInputOnFocus={false} autoFocus={true} onChangeText={(text) => {
+                    <TextInput 
+                        style={{color: 'white', borderColor: "#1D9E75", borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(10), fontSize: rs(16)}} 
+                        placeholder='Scan Location' 
+                        placeholderTextColor={'#919191'} 
+                        showSoftInputOnFocus={false} 
+                        autoFocus={true} 
+                        value={verifyWHText}
+                        onChangeText={(text) => {
                         // console.log("Verify WH Text: ", text);
                         setVerifyWHText(text);
                         if (text === itemObj[0].primaryBin) {
                             // console.log('WH location verified');
                             setVerifyWHLoc(false);
+                        } else {
+                            setErrorMessage("Location doesn't match");
+                            setErrorVisible(true);
                         }
                     }}/>
                     <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
                         <TouchableOpacity onPress={() => {
                             setVerifyWHLoc(false);
                             setEditWHQty(false);
+                            setVerifyCCText('');
+                            setVerifyWHText('');
                         }}>
                             <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(20), fontWeight: 'bold'}}>Cancel</Text>
                         </TouchableOpacity>
@@ -157,13 +183,23 @@ const ScanItem = ({}) => {
             }}>
                 <View style={{backgroundColor: '#000000bb', width: '90%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(200), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
                     <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>Verify Location</Text>
-                    <TextInput style={{color: 'white', borderColor: "#1D9E75", borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(10), fontSize: rs(16)}} placeholder='Scan Location' placeholderTextColor={'#fff'} showSoftInputOnFocus={false} autoFocus={true} onChangeText={(text) => {
+                    <TextInput 
+                        style={{color: 'white', borderColor: "#1D9E75", borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(10), fontSize: rs(16)}} 
+                        placeholder='Scan Location' 
+                        placeholderTextColor={'#919191'} 
+                        showSoftInputOnFocus={false} 
+                        autoFocus={true} 
+                        value={verifyCCText}
+                        onChangeText={(text) => {
                         // console.log("Verify WH Text: ", text);
                         setVerifyCCText(text);
                         if (text === itemObj[0].secondaryBin) {
                             // console.log('WH location verified');
                             setVerifyCCLoc(false);
                             setVerifyCCText(text);
+                        } else {
+                            setErrorMessage("Location doesn't match");
+                            setErrorVisible(true);
                         }
                     }}/>
                     <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
@@ -182,12 +218,44 @@ const ScanItem = ({}) => {
                 visible={errorVisible}
                 onRequestClose={() => {
                     setItem('');
+                    setVerifyWHText('');
+                    setVerifyCCText('');
             }}>
                 <View style={{backgroundColor: '#000000bb', width: '70%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(125), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
-                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>Invalid Item</Text>
+                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{errorMessage}</Text>
                     <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
                         <TouchableOpacity onPress={() => {
+                            setVerifyWHText('');
+                            setVerifyCCText('');
                             setErrorVisible(false);
+                        }}>
+                            <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(20), fontWeight: 'bold'}}>Close</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={confirmVisible}
+                onRequestClose={() => {
+            }}>
+                <View style={{backgroundColor: '#000000bb', width: '70%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(125), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
+                    {editWHQty && <>
+                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{confirmMessage}</Text>
+                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{whQty < itemObj[0].primaryBinQuantity ? `Deducted ${numberCommaFormat(1 * (whQty - itemObj[0].primaryBinQuantity))}`: whQty > itemObj[0].primaryBinQuantity ? `Added ${numberCommaFormat(whQty - itemObj[0].primaryBinQuantity)}` : ""}</Text>
+                    </>}
+                    {editCCQty && <>
+                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{confirmMessage}</Text>
+                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{ccQty < itemObj[0].secondaryBinQuantity ? `Deducted ${numberCommaFormat(-1 * (ccQty - itemObj[0].secondaryBinQuantity))}`: ccQty > itemObj[0].secondaryBinQuantity ? `Added ${numberCommaFormat(ccQty - itemObj[0].secondaryBinQuantity)}` : ""}</Text>
+                    </>}
+                    <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
+                        <TouchableOpacity onPress={() => {
+                            setEditWHQty(false);
+                            setEditCCQty(false);
+                            setVerifyCCText('');
+                            setVerifyWHText('');
+                            setConfirmVisible(false);
                         }}>
                             <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(20), fontWeight: 'bold'}}>Close</Text>
                         </TouchableOpacity>
@@ -196,7 +264,12 @@ const ScanItem = ({}) => {
             </Modal>
                 {!itemObj &&
                  <View style={{flex: 1, justifyContent: 'center', paddingHorizontal: '5%'}}>
-                    <TextInput placeholder='|||| Item number or UPC' placeholderTextColor={'#919191'} style={[styles.skuInput, { padding: rs(25), fontSize: rs(20), height: rs(75), borderRadius: rs(15) }]} showSoftInputOnFocus={false} autoFocus={true} value={item} onChangeText={(text) => {
+                    <TextInput 
+                        placeholder='|||| Item number or UPC' placeholderTextColor={'#919191'} style={[styles.skuInput, { padding: rs(25), fontSize: rs(20), height: rs(75), borderRadius: rs(15) }]} 
+                        showSoftInputOnFocus={false} 
+                        autoFocus={true} 
+                        value={item} 
+                        onChangeText={(text) => {
                         setItem(text);
                     }} />
                     <Text style={{color: '#8f8f8f', textAlign: 'center', marginTop: rs(20), fontSize: rs(14)}}>Scan item or type. Press Enter.</Text>
@@ -214,15 +287,15 @@ const ScanItem = ({}) => {
                                 <View style={{...styles.itemOverview, marginTop: 10, paddingBottom: 0, borderTopEndRadius: 10, borderTopLeftRadius: 10, }}>
                                     <View style={styles.itemDetailFlex}>
                                         <Text style={[styles.itemDetailsHead, { fontSize: rs(13) }]}>Quantity on Hand (QOH)</Text>
-                                        <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{itemObj[0].quantity}</Text>
+                                        <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{numberCommaFormat(itemObj[0].quantity)}</Text>
                                     </View>
                                     <View style={styles.itemDetailFlex}>
                                         <Text style={[styles.itemDetailsHead, { fontSize: rs(13) }]}>Bins total (WH + C/C + Storage + Fulfilled)</Text>
-                                        <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{calcBin(itemObj[0].primaryBinQuantity, itemObj[0].secondaryBinQuantity, itemObj[0].fulfillQuantity)}</Text>
+                                        <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{numberCommaFormat(calcBin(itemObj[0].primaryBinQuantity, itemObj[0].secondaryBinQuantity, itemObj[0].fulfillQuantity))}</Text>
                                     </View>
                                     {
                                         calcBin(itemObj[0].primaryBinQuantity, itemObj[0].secondaryBinQuantity, itemObj[0].fulfillQuantity) < 0 && <View style={styles.itemDiscrepancy}>
-                                        <Text style={[styles.itemDiscrepancyText, { fontSize: rs(13) }]}>BIN DISCREPANCY - bins under by {calcDiff(itemObj[0].quantity, calcBin(itemObj[0].primaryBinQuantity, itemObj[0].secondaryBinQuantity, itemObj[0].fulfillQuantity))}</Text>
+                                        <Text style={[styles.itemDiscrepancyText, { fontSize: rs(13) }]}>BIN DISCREPANCY - bins under by {numberCommaFormat(calcDiff(itemObj[0].quantity, calcBin(itemObj[0].primaryBinQuantity, itemObj[0].secondaryBinQuantity, itemObj[0].fulfillQuantity)))}</Text>
                                     </View>
                                     }
                                     {
@@ -240,11 +313,13 @@ const ScanItem = ({}) => {
                                         {editWHQty === false && <View style={styles.itemDetailFlex}>
                                             <Text style={[styles.itemDetailsHead, { fontSize: rs(13) }]}>Quantity</Text>
                                                 <View style={styles.textGroup}>
-                                                    <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{itemObj[0].primaryBinQuantity}</Text>
+                                                    <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{numberCommaFormat(itemObj[0].primaryBinQuantity)}</Text>
                                                     <TouchableOpacity onPress={() => {
                                                         setEditWHQty(true);
                                                         setEditCCQty(false);
                                                         setVerifyWHLoc(true);
+                                                        setVerifyWHText('');
+                                                        setVerifyCCText('');
                                                     }}>
                                                         <Image style={[styles.pencilIcon, { width: rs(32), height: rs(32), marginRight: rs(15) }]} source={pencil} />
                                                     </TouchableOpacity>
@@ -254,7 +329,7 @@ const ScanItem = ({}) => {
                                             {/* <Text style={styles.itemDetailsHead}>Quantity</Text> */}
                                                 <View style={{...styles.textGroup, width: '100%', marginVertical: 20}}>
                                                     <View>
-                                                        <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(14)}}>{itemObj[0].primaryBinQuantity}</Text>
+                                                        <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(23)}}>{numberCommaFormat(itemObj[0].primaryBinQuantity)}</Text>
                                                         <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
                                                             <TouchableOpacity style={[styles.qtyBtn, { width: rs(50), height: rs(50) }]} onPress={() => {
                                                                 setWhQty(prevQty => {
@@ -264,7 +339,8 @@ const ScanItem = ({}) => {
                                                             <TextInput 
                                                                 style={[styles.qtyInput, { color: '#fff', textAlign: 'center', padding: rs(10), width: wp(45), maxWidth: rs(200) }]}
                                                                 placeholder={'Change total quantity'}
-                                                                placeholderTextColor={'#fff'}
+                                                                placeholderTextColor={'#919191'}
+                                                                showSoftInputOnFocus={false}
                                                                 value={whQty}
                                                                 keyboardType='number-pad'
                                                                 onChangeText={(val) => {
@@ -278,8 +354,8 @@ const ScanItem = ({}) => {
                                                             }}><Text style={[styles.qtyBtnText, { fontSize: rs(30) }]}>+</Text></TouchableOpacity>
                                                         </View>
                                                         <View>
-                                                        <Text style={{color: '#929292', textAlign: 'center', marginTop: 10, fontSize: rs(13)}}>{whQty < itemObj[0].primaryBinQuantity ? `Deducting ${whQty - itemObj[0].primaryBinQuantity}`
-                                                         : whQty > itemObj[0].primaryBinQuantity ? `Adding ${whQty - itemObj[0].primaryBinQuantity}` : ""}</Text>
+                                                        <Text style={{color: '#929292', textAlign: 'center', marginTop: 10, fontSize: rs(13)}}>{whQty < itemObj[0].primaryBinQuantity ? `Deducting ${numberCommaFormat(-1 * (whQty - itemObj[0].primaryBinQuantity))}`
+                                                         : whQty > itemObj[0].primaryBinQuantity ? `Adding ${numberCommaFormat(whQty - itemObj[0].primaryBinQuantity)}` : ""}</Text>
                                                         <TouchableOpacity style={{...styles.applyBtn, marginTop: 20, width: '50%', marginHorizontal: 'auto', padding: rs(10), borderRadius: rs(8)}}
                                                         onPress={() => {
                                                             updateBinQty(itemObj[0].primaryBin, whQty - itemObj[0].primaryBinQuantity);
@@ -301,11 +377,13 @@ const ScanItem = ({}) => {
                                         {editCCQty === false && <View style={styles.itemDetailFlex}>
                                             <Text style={[styles.itemDetailsHead, { fontSize: rs(13) }]}>Quantity</Text>
                                                 <View style={styles.textGroup}>
-                                                    <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{itemObj[0].secondaryBinQuantity}</Text>
+                                                    <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{numberCommaFormat(itemObj[0].secondaryBinQuantity)}</Text>
                                                     <TouchableOpacity onPress={() => {
                                                         setEditCCQty(true);
                                                         setEditWHQty(false);
                                                         setVerifyCCLoc(true);
+                                                        setVerifyWHText('');
+                                                        setVerifyCCText('');
                                                     }}>
                                                         <Image style={[styles.pencilIcon, { width: rs(32), height: rs(32), marginRight: rs(15) }]} source={pencil} />
                                                     </TouchableOpacity>
@@ -315,7 +393,7 @@ const ScanItem = ({}) => {
                                             {/* <Text style={styles.itemDetailsHead}>Quantity</Text> */}
                                                 <View style={{...styles.textGroup, width: '100%', marginVertical: 20}}>
                                                     <View>
-                                                        <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(14)}}>{itemObj[0].secondaryBinQuantity}</Text>
+                                                        <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(23)}}>{numberCommaFormat(itemObj[0].secondaryBinQuantity)}</Text>
                                                         <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
                                                             <TouchableOpacity style={[styles.qtyBtn, { width: rs(50), height: rs(50) }]} onPress={() => {
                                                                 setCcQty(prevQty => {
@@ -325,7 +403,8 @@ const ScanItem = ({}) => {
                                                             <TextInput 
                                                                 style={[styles.qtyInput, { color: '#fff', textAlign: 'center', padding: rs(10), width: wp(45), maxWidth: rs(200) }]}
                                                                 placeholder={'Change total quantity'}
-                                                                placeholderTextColor={'#fff'}
+                                                                placeholderTextColor={'#919191'}
+                                                                showSoftInputOnFocus={false}
                                                                 value={ccQty}
                                                                 keyboardType='number-pad'
                                                                 onChangeText={(val) => {
@@ -340,8 +419,8 @@ const ScanItem = ({}) => {
                                                         </View>
                                                         <View>
                                                         <Text style={{color: '#929292', textAlign: 'center', marginTop: 10, fontSize: rs(13)}}>
-                                                            {ccQty < itemObj[0].secondaryBinQuantity ? `Deducting ${ccQty - itemObj[0].secondaryBinQuantity}`
-                                                         : ccQty > itemObj[0].secondaryBinQuantity ? `Adding ${ccQty - itemObj[0].secondaryBinQuantity}` : ""}</Text>
+                                                            {ccQty < itemObj[0].secondaryBinQuantity ? `Deducting ${numberCommaFormat(-1 * (ccQty - itemObj[0].secondaryBinQuantity))}`
+                                                         : ccQty > itemObj[0].secondaryBinQuantity ? `Adding ${numberCommaFormat(ccQty - itemObj[0].secondaryBinQuantity)}` : ""}</Text>
                                                          <TouchableOpacity 
                                                             style={{...styles.applyBtn, marginTop: 20, width: '50%', marginHorizontal: 'auto', padding: rs(10), borderRadius: rs(8)}}
                                                             onPress={() => {
@@ -361,17 +440,17 @@ const ScanItem = ({}) => {
                                     }}>
                                         <View style={{...styles.itemDetailFlex}}>
                                             <Text style={[styles.itemDetailsHead, { marginBottom: 5, fontSize: rs(13) }]}>Storage</Text>
-                                            <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{palletQty}</Text>
+                                            <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{numberCommaFormat(palletQty)}</Text>
                                         </View>
                                         <View style={{...styles.itemDetailFlex, alignSelf: 'flex-end'}}>
-                                            <Text style={[styles.itemDetailsHead, { marginTop: 0, fontSize: rs(13) }]}>{itemObj[0].palletData.length} pallet(s) - tap to view</Text>
+                                            <Text style={[styles.itemDetailsHead, { marginTop: 0, fontSize: rs(13) }]}>{numberCommaFormat(itemObj[0].palletData.length)} pallet(s) - tap to view</Text>
                                         </View>
                                     </TouchableOpacity>
                                 </View>
                                 <View style={{...styles.itemOverview, marginTop: 10, paddingBottom: 0, borderTopEndRadius: 10, borderTopLeftRadius: 10, }}>
                                     <View style={{...styles.itemDetailFlex, paddingVertical: 10}}>
                                         <Text style={[styles.itemDetailsHead, { marginBottom: 5, fontSize: rs(13) }]}>Fulfilled</Text>
-                                        <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{itemObj[0].fulfillQuantity}</Text>
+                                        <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{numberCommaFormat(itemObj[0].fulfillQuantity)}</Text>
                                     </View>
                                 </View>
                             </View>

@@ -45,6 +45,7 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
         paddingBottom: '15%',
         paddingLeft: '8%',
+        marginBottom: 60
     },
     menuItem: {
         alignItems: 'center',

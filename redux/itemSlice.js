@@ -3,7 +3,8 @@ const initialState = {
     items: [],
     pallets: [],
     itemId: 0,
-    employeeId: ''
+    employeeId: '',
+    ip: ''
 }
 
 const itemSlice = createSlice({
@@ -21,9 +22,12 @@ const itemSlice = createSlice({
         },
         setEmployeeId: (state, action) => {
             state.employeeId = action.payload;
+        },
+        setIp: (state, action) => {
+            state.ip = action.payload;
         }
     }
 })
 
-export const {setItems, setPallets, setItemId, setEmployeeId } = itemSlice.actions;
+export const {setItems, setPallets, setItemId, setEmployeeId, setIp } = itemSlice.actions;
 export default itemSlice.reducer;

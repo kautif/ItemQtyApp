@@ -11,24 +11,32 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
+  ToastAndroid,
+  Platform
 } from 'react-native';
-import { useDispatch } from 'react-redux';
-import { setEmployeeId } from '../../redux/itemSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { setEmployeeId, setIp } from '../../redux/itemSlice';
 import useResponsive from '../hooks/useResponsive';
 
 const ghraLogo = require('../../assets/images/WH-New-Logo-PNG-scaled.png');
+const gear = require('../../assets/images/settings.png');
 
 const Scan = ({ navigation }) => {
+  const ip = useSelector(state => state.items.ip);
+
   const dispatch = useDispatch();
 
   // Shared scaling hook (same baseline/scale used across every screen).
   const { rs, wp } = useResponsive();
 
   const player = useAudioPlayer(require('../../assets/sounds/buzzer.mp3'));
+
   const [badgeId, setBadgeId] = useState('');
+  const [ipAddress, setIpAddress] = useState('');
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [settingsVisible, setSettingsVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   const [loading, setLoading] = useState(false);
@@ -50,6 +58,41 @@ const Scan = ({ navigation }) => {
     } catch (err) {
       console.log("showError: ", err.message);
     }
+  }
+
+  const showToast = (message) => {
+      if (Platform.OS === 'android') {
+      ToastAndroid.show(message, ToastAndroid.SHORT);
+      } else {
+      // For iOS, you can use Alert or a third-party toast library
+      Alert.alert('Keyboard Status', message);
+      }
+  }
+
+  function validIp(ip) {
+    const parts = ip.split(/[.:]/);
+
+    if (parts.length === 4) {
+
+        // Check IPv4 parts
+        for (const part of parts) {
+            const num = parseInt(part);
+            if (isNaN(num) || num < 0 || num > 255) {
+                return false;
+            }
+        }
+        return true;
+    } else if (parts.length === 8) {
+
+        // Check IPv6 parts
+        for (const part of parts) {
+            if (!/^[0-9a-fA-F]{1,4}$/.test(part)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    return false;
   }
 
   function handleSubmit(rawValue) {
@@ -135,6 +178,14 @@ const Scan = ({ navigation }) => {
     };
   }, []);
 
+  useEffect(() => {
+    if (ip.length > 0) {
+      setSettingsVisible(false);
+      console.log("ip: ", ip);
+      showToast(`IP Address updated to ${ip}`);
+    }
+  }, [ip])
+
   // Note: useAudioPlayer manages its own loading/unloading lifecycle,
   // so no manual cleanup effect is needed here.
 
@@ -148,7 +199,7 @@ const Scan = ({ navigation }) => {
               <Text style={[styles.modalText, { fontSize: rs(18) }]}>{errorMessage}</Text>
 
               <TouchableOpacity
-                style={[styles.okButton, { paddingVertical: rs(10), paddingHorizontal: rs(30) }]}
+                style={[styles.okButton, { paddingVertical: rs(10), paddingHorizontal: rs(30)}]}
                 onPress={() => {
                   setModalVisible(false);
                   setBadgeId('');
@@ -161,11 +212,77 @@ const Scan = ({ navigation }) => {
           </View>
         </Modal>
 
+        <Modal transparent visible={settingsVisible} animationType="fade">
+          <View style={styles.modalBackdrop}>
+            <View style={[styles.modalView, { width: wp(80), maxWidth: rs(400) }]}>
+              <TouchableOpacity 
+                style={{position: 'absolute', right: 10}}
+                onPress={() => {
+                  setSettingsVisible(false);
+                }}>
+                <Text style={{fontSize: 40}}>X</Text>
+              </TouchableOpacity>
+              <Text style={[styles.modalText, { fontSize: rs(18) }]}>Enter IP Address</Text>
+
+              <TextInput
+                // ref={inputRef}
+                style={[styles.input, { width: wp(78), maxWidth: rs(300), height: rs(60), fontSize: rs(16) }]}
+                value={ipAddress}
+                // showSoftInputOnFocus={false}
+                autoFocus
+                onChangeText={(text) => {
+                  setIpAddress(text);
+                }}
+                keyboardType='numeric'
+                returnKeyType="done"
+              />
+            <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around'}}>
+              <TouchableOpacity
+                style={[styles.clearButton, { width: wp(35), maxWidth: rs(150), marginRight: 10, padding: rs(10) }]}
+                onPress={() => {
+                    if(validIp(ipAddress)) {
+                      dispatch(setIp(ipAddress));
+                    } else {
+                      setErrorMessage("IP Address Not Valid");
+                      setModalVisible(true);
+                      setIpAddress('');
+                    }
+                }}>
+              <Text style={[styles.clearButtonText, { fontSize: rs(18) }]}>Update</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={[styles.clearButton, { width: wp(35), maxWidth: rs(150), padding: rs(10), backgroundColor: 'red' }]}
+                onPress={() => {
+                    setIpAddress('');
+                }}>
+              <Text style={[styles.clearButtonText, { fontSize: rs(18) }]}>Clear</Text>
+            </TouchableOpacity>
+            </View>
+            </View>
+          </View>
+        </Modal>
+
         <Image
           style={[styles.logo, { width: rs(400), height: rs(400), maxWidth: wp(100), maxHeight: wp(80) }]}
           source={ghraLogo}
           resizeMode="contain"
         />
+
+        {/* <TouchableOpacity
+          style={{ position: 'absolute', top: 0, right: 0}}
+          onPress={() => {
+            dispatch(setIp(''));
+            setIpAddress('');
+            setSettingsVisible(true);
+          }}
+        >
+          <Image
+            style={[styles.logo, { width: rs(40), height: rs(40), maxWidth: wp(100), maxHeight: wp(80) }]}
+            source={gear}
+            resizeMode="contain"
+          />
+        </TouchableOpacity> */}
 
         <Text style={[styles.version, { fontSize: rs(12) }]}>Version 1.0</Text>
 
@@ -174,6 +291,7 @@ const Scan = ({ navigation }) => {
             ref={inputRef}
             style={[styles.input, { width: wp(78), maxWidth: rs(300), height: rs(60), fontSize: rs(16) }]}
             value={badgeId}
+            showSoftInputOnFocus={false}
             autoFocus
             onChangeText={(text) => {
               console.log('badge RAW:', JSON.stringify(text));
@@ -194,7 +312,6 @@ const Scan = ({ navigation }) => {
               handleSubmit(badgeIdRef.current || badgeId);
             }}
             returnKeyType="done"
-            showSoftInputOnFocus={false}
           />
 
           <Text style={[styles.scanText, { fontSize: rs(22) }]}>Scan GHRA Badge</Text>
@@ -223,6 +340,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 60
   },
   logo: { alignSelf: 'center' },
   version: { alignSelf: 'center' },
