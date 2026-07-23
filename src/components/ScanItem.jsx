@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Image, ImageBackground, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { setItemId, setItems, setPallets } from '../../redux/itemSlice';
@@ -11,6 +11,11 @@ const pencil = require('../../assets/images/pencil.png');
 
 const ScanItem = ({}) => {
     const dispatch = useDispatch();
+    const whQtyInputRef = useRef(null);
+    const ccQtyInputRef = useRef(null);
+    const scanWhRef = useRef(null);
+    const scanCcRef = useRef(null);
+
     const { rs, wp, hp } = useResponsive();
 
     const [item, setItem] = useState('');
@@ -337,14 +342,15 @@ const ScanItem = ({}) => {
                                                                 })
                                                             }}><Text style={[styles.qtyBtnText, { fontSize: rs(30) }]}>-</Text></TouchableOpacity>
                                                             <TextInput 
+                                                                ref={whQtyInputRef}
                                                                 style={[styles.qtyInput, { color: '#fff', textAlign: 'center', padding: rs(10), width: wp(45), maxWidth: rs(200) }]}
-                                                                placeholder={'Change total quantity'}
+                                                                placeholder={'Change quantity'}
                                                                 placeholderTextColor={'#919191'}
-                                                                showSoftInputOnFocus={false}
-                                                                value={whQty}
+                                                                // showSoftInputOnFocus={false}
+                                                                value={whQty.toString()}
                                                                 keyboardType='number-pad'
                                                                 onChangeText={(val) => {
-                                                                    setWhQty(val);
+                                                                    setWhQty(val === '' ? 0 : parseInt(val) || 0);
                                                                 }}   
                                                             />
                                                             <TouchableOpacity style={[styles.qtyBtn, { width: rs(50), height: rs(50) }]} onPress={() => {
@@ -354,11 +360,12 @@ const ScanItem = ({}) => {
                                                             }}><Text style={[styles.qtyBtnText, { fontSize: rs(30) }]}>+</Text></TouchableOpacity>
                                                         </View>
                                                         <View>
-                                                        <Text style={{color: '#929292', textAlign: 'center', marginTop: 10, fontSize: rs(13)}}>{whQty < itemObj[0].primaryBinQuantity ? `Deducting ${numberCommaFormat(-1 * (whQty - itemObj[0].primaryBinQuantity))}`
-                                                         : whQty > itemObj[0].primaryBinQuantity ? `Adding ${numberCommaFormat(whQty - itemObj[0].primaryBinQuantity)}` : ""}</Text>
+                                                        {Number.isFinite(whQty) > 0 && <Text style={{color: '#fff', textAlign: 'center', marginTop: 10, fontSize: rs(20)}}>{whQty && (whQty < itemObj[0].primaryBinQuantity ? `Deducting ${numberCommaFormat(-1 * (whQty - itemObj[0].primaryBinQuantity))}`
+                                                         : whQty > itemObj[0].primaryBinQuantity ? `Adding: ${numberCommaFormat(parseInt(whQty) - itemObj[0].primaryBinQuantity) }` : "")}</Text>}
+                                                         {/* {Number.isFinite(whQty) > 0 && <Text style={{color: '#fff', textAlign: 'center', marginTop: 10, fontSize: rs(20)}}>New Total: {whQty}</Text>} */}
                                                         <TouchableOpacity style={{...styles.applyBtn, marginTop: 20, width: '50%', marginHorizontal: 'auto', padding: rs(10), borderRadius: rs(8)}}
                                                         onPress={() => {
-                                                            updateBinQty(itemObj[0].primaryBin, whQty - itemObj[0].primaryBinQuantity);
+                                                            updateBinQty(itemObj[0].primaryBin, parseInt(whQty) - itemObj[0].primaryBinQuantity);
                                                         }}>
                                                             <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Apply</Text>
                                                         </TouchableOpacity>
@@ -400,15 +407,16 @@ const ScanItem = ({}) => {
                                                                     return prevQty - 1;
                                                                 })
                                                             }}><Text style={[styles.qtyBtnText, { fontSize: rs(30) }]}>-</Text></TouchableOpacity>
-                                                            <TextInput 
+                                                            <TextInput
+                                                                ref={ccQtyInputRef} 
                                                                 style={[styles.qtyInput, { color: '#fff', textAlign: 'center', padding: rs(10), width: wp(45), maxWidth: rs(200) }]}
                                                                 placeholder={'Change total quantity'}
                                                                 placeholderTextColor={'#919191'}
-                                                                showSoftInputOnFocus={false}
-                                                                value={ccQty}
+                                                                // showSoftInputOnFocus={false}
+                                                                value={ccQty.toString()}
                                                                 keyboardType='number-pad'
                                                                 onChangeText={(val) => {
-                                                                    setCcQty(val);
+                                                                    setCcQty(val === '' ? 0 : parseInt(val) || 0);
                                                                 }}   
                                                             />
                                                             <TouchableOpacity style={[styles.qtyBtn, { width: rs(50), height: rs(50) }]} onPress={() => {
@@ -418,13 +426,13 @@ const ScanItem = ({}) => {
                                                             }}><Text style={[styles.qtyBtnText, { fontSize: rs(30) }]}>+</Text></TouchableOpacity>
                                                         </View>
                                                         <View>
-                                                        <Text style={{color: '#929292', textAlign: 'center', marginTop: 10, fontSize: rs(13)}}>
-                                                            {ccQty < itemObj[0].secondaryBinQuantity ? `Deducting ${numberCommaFormat(-1 * (ccQty - itemObj[0].secondaryBinQuantity))}`
-                                                         : ccQty > itemObj[0].secondaryBinQuantity ? `Adding ${numberCommaFormat(ccQty - itemObj[0].secondaryBinQuantity)}` : ""}</Text>
+                                                        {Number.isFinite(ccQty) > 0 && <Text style={{color: '#fff', textAlign: 'center', marginTop: 10, fontSize: rs(20)}}>{ccQty && (ccQty < itemObj[0].secondaryBinQuantity ? `Deducting ${numberCommaFormat(-1 * (ccQty - itemObj[0].secondaryBinQuantity))}`
+                                                         : ccQty > itemObj[0].secondaryBinQuantity ? `Adding: ${numberCommaFormat(parseInt(ccQty) - itemObj[0].secondaryBinQuantity) }` : "")}</Text>}
+                                                         {/* {Number.isFinite(ccQty) > 0 && <Text style={{color: '#fff', textAlign: 'center', marginTop: 10, fontSize: rs(20)}}>New Total: {ccQty}</Text>} */}
                                                          <TouchableOpacity 
                                                             style={{...styles.applyBtn, marginTop: 20, width: '50%', marginHorizontal: 'auto', padding: rs(10), borderRadius: rs(8)}}
                                                             onPress={() => {
-                                                                updateBinQty(itemObj[0].secondaryBin, ccQty - itemObj[0].secondaryBinQuantity);
+                                                                updateBinQty(itemObj[0].secondaryBin, parseInt(ccQty) - itemObj[0].secondaryBinQuantity);
                                                             }}>
                                                             <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Apply</Text>
                                                         </TouchableOpacity>

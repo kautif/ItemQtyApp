@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { ImageBackground, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import Dropdown from 'react-native-input-select';
@@ -9,6 +9,8 @@ import useResponsive from '../hooks/useResponsive';
 const ghraDark = require('../../assets/images/ghra_dark.jpg');
 
 const Storage = ({}) => {
+    const palletInputRef = useRef(null);
+    const verifyPalletRef = useRef(null);
     const { hp, rs, wp } = useResponsive();
     const currentDate = new Date;
     const pallets = useSelector(state => state.items.pallets);
@@ -94,6 +96,9 @@ const updatePallet = async (palletId) => {
             console.log("pallet default date: ", selectedPallet.expiryDate);
         }
     }, [verifyPallet])
+
+    useEffect(() => {
+    }, [errorVisible])
 
     useEffect(() => {
         console.log("date updated: ", defaultDate);
@@ -208,7 +213,8 @@ const updatePallet = async (palletId) => {
                             </TouchableOpacity>
                             {verifyPallet && <View>
                                     <Text style={{color: 'white', marginTop: 20, fontSize: rs(14)}}>Scan the pallet barcode or enter the pallet number to unlock editing</Text>
-                                    <TextInput 
+                                    <TextInput
+                                        ref={verifyPalletRef} 
                                         style={[styles.qtyInput, { marginTop: rs(20), width: wp(50), maxWidth: rs(200), fontSize: rs(16), color: '#fff' }]} placeholder='|||| Pallet Number'
                                         autoFocus={true}
                                         showSoftInputOnFocus={false}
@@ -222,10 +228,12 @@ const updatePallet = async (palletId) => {
                                             } else {
                                                 setErrorMessage("Pallet doesn't match");
                                                 setErrorVisible(true);
+                                                setVerifyPalletText('');
+                                                setTimeout(() => verifyPalletRef.current?.focus(), 100);
                                             }
                                         }}    
                                     />
-                                    <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-around'}}>
+                                    {/* <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-around'}}>
                                         <TouchableOpacity style={[styles.applyBtn, { padding: rs(10), borderRadius: rs(8) }]}>
                                             <Text style={[styles.qtyBtnText, { fontSize: rs(15) }]}>Verify</Text>
                                         </TouchableOpacity>
@@ -238,7 +246,7 @@ const updatePallet = async (palletId) => {
                                         >
                                             <Text style={[styles.qtyBtnText, { fontSize: rs(15) }]}>Cancel</Text>
                                         </TouchableOpacity>
-                                    </View>
+                                    </View> */}
                             </View>}
 
                             {showQty && <View style={styles.itemDetailFlex}>
@@ -251,12 +259,14 @@ const updatePallet = async (palletId) => {
                                                     })
                                                 }}><Text style={[styles.qtyBtnText, { fontSize: rs(30) }]}>-</Text></TouchableOpacity>
                                                 <TextInput 
+                                                    ref={palletInputRef}
                                                     style={[styles.qtyInput, { color: '#fff', textAlign: 'center', padding: rs(10), width: wp(45), maxWidth: rs(200), fontSize: rs(16) }]} placeholder={binQty.toString()}
                                                     placeholderTextColor={'#919191'}
-                                                    showSoftInputOnFocus={false} 
+                                                    // showSoftInputOnFocus={false} 
                                                     keyboardType='numeric'
-                                                    onChangeText={(text) => {
-                                                        setBinQty(parseInt(text));
+                                                    value={binQty.toString()}
+                                                    onChangeText={(val) => {
+                                                        setBinQty(val === '' ? 0 : parseInt(val) || 0);
                                                     }}    
                                                 />
                                                 <TouchableOpacity style={[styles.qtyBtn, { width: rs(50), height: rs(50), alignItems: 'center', justifyContent: 'center' }]} onPress={() => {
