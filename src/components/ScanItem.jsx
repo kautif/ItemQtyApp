@@ -150,7 +150,8 @@ const ScanItem = ({}) => {
             }}>
                 <View style={{backgroundColor: '#000000bb', width: '90%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(200), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
                     <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>Verify Location</Text>
-                    <TextInput 
+                    <TextInput
+                        ref={scanWhRef} 
                         style={{color: 'white', borderColor: "#1D9E75", borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(10), fontSize: rs(16)}} 
                         placeholder='Scan Location' 
                         placeholderTextColor={'#919191'} 
@@ -166,6 +167,9 @@ const ScanItem = ({}) => {
                         } else {
                             setErrorMessage("Location doesn't match");
                             setErrorVisible(true);
+                            setTimeout(() => {
+                                scanWhRef.current?.focus();
+                            }, 100)
                         }
                     }}/>
                     <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
@@ -188,7 +192,8 @@ const ScanItem = ({}) => {
             }}>
                 <View style={{backgroundColor: '#000000bb', width: '90%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(200), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
                     <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>Verify Location</Text>
-                    <TextInput 
+                    <TextInput
+                        ref={scanCcRef} 
                         style={{color: 'white', borderColor: "#1D9E75", borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(10), fontSize: rs(16)}} 
                         placeholder='Scan Location' 
                         placeholderTextColor={'#919191'} 
@@ -205,6 +210,9 @@ const ScanItem = ({}) => {
                         } else {
                             setErrorMessage("Location doesn't match");
                             setErrorVisible(true);
+                            setTimeout(() => {
+                                scanCcRef.current?.focus();
+                            }, 100)
                         }
                     }}/>
                     <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>

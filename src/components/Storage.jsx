@@ -11,6 +11,7 @@ const ghraDark = require('../../assets/images/ghra_dark.jpg');
 const Storage = ({}) => {
     const palletInputRef = useRef(null);
     const verifyPalletRef = useRef(null);
+    const scanPalletRef = useRef(null);
     const { hp, rs, wp } = useResponsive();
     const currentDate = new Date;
     const pallets = useSelector(state => state.items.pallets);
@@ -58,6 +59,9 @@ const updatePallet = async (palletId) => {
                 if (response.data.success) {
                     setConfirmMessage("Pallet Updated");
                     setConfirmVisible(true);
+                    setTimeout(() => {
+                        scanPalletRef.current?.focus();
+                    }, 100)
                 }
             }).catch(err => {
                 console.error(err.response.data.reason);
@@ -151,6 +155,7 @@ const updatePallet = async (palletId) => {
             </Modal>
             <ScrollView style={{marginBottom: 40}} contentContainerStyle={{ paddingHorizontal: '4%' }}>
                 <TextInput 
+                    ref={scanPalletRef}
                     placeholder='Scan Pallet'
                     placeholderTextColor={'#919191'}
                     showSoftInputOnFocus={false}
