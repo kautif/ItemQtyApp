@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ImageBackground, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import Dropdown from 'react-native-input-select';
@@ -36,6 +36,14 @@ const Storage = ({}) => {
 
     const [binQty, setBinQty] = useState(0);
     const [defaultDate, setDefaultDate] = useState(Date.now());
+
+    const [palletExpiry, setPalletExpiry] = useState();
+    const [pallet, setPallet] = useState();
+    const [palletBin, setPalletBin] = useState('');
+    const [palletId, setPalletId] = useState(0);
+    const [palletDataId, setPalletDataId] = useState(0);
+    const [palletQty, setPalletQty] = useState(0);
+
     const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
     const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
     const [selectedDay, setSelectedDay] = useState(currentDate.getDay());
@@ -46,6 +54,25 @@ const Storage = ({}) => {
     let yearOptions = [];
     let response;
 
+const getPallet = async (palletId) => {
+    return axios.post('http://192.168.2.165:81/api/Item/getItemPallet', {
+        token: 'Yh2k7QSu4l8CZg5p6X3Pna9L0Miy4D3Bvt0JVr87UcOj69Kqw5R2Nmf4FWs03Hdx',
+        itemId: itemId,
+        palletId: palletId
+    }).then(response => {
+        if (response.data.success) {
+            console.log("response: ", response.data);
+            setPallet(response.data.palletData[0]);
+            setPalletBin(response.data.palletData[0].binNumber);
+            setPalletExpiry(response.data.palletData[0].expiryDate);
+            setPalletId(response.data.palletData[0].palletId);
+            setPalletDataId(response.data.palletData[0].palletDataId);
+            setPalletQty(response.data.palletData[0].quantity);
+            setBinQty(response.data.palletData[0].quantity);
+        }
+    })
+}
+
 const updatePallet = async (palletId) => {
         return axios.post('http://192.168.2.165:81/api/Item/updateItemPalletQuantityAdjustment', {
                 token: 'Yh2k7QSu4l8CZg5p6X3Pna9L0Miy4D3Bvt0JVr87UcOj69Kqw5R2Nmf4FWs03Hdx',
@@ -53,7 +80,8 @@ const updatePallet = async (palletId) => {
                 palletDataId: palletId,
                 itemID: itemId,
                 expiryDate: defaultDate,
-                quantity: selectedPallet && (binQty - selectedPallet.quantity)
+                countedQty: binQty,
+                varianceQty: binQty - palletQty
             }).then(response => {
                 console.log("pallet response: ", response.data);
                 if (response.data.success) {
@@ -94,10 +122,10 @@ const updatePallet = async (palletId) => {
     }, [pallets])
 
     useEffect(() => {
-        if (verifyPallet && selectedPallet) {
-            setDefaultDate(selectedPallet.expiryDate);
-            setSelected(selectedPallet.expiryDate)
-            console.log("pallet default date: ", selectedPallet.expiryDate);
+        if (verifyPallet && pallet) {
+            setDefaultDate(palletExpiry);
+            setSelected(palletExpiry);
+            // console.log("pallet default date: ", selectedPallet.expiryDate);
         }
     }, [verifyPallet])
 
@@ -137,7 +165,7 @@ const updatePallet = async (palletId) => {
             }}>
                 <View style={{backgroundColor: '#000000bb', width: '70%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(125), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
                     <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{confirmMessage}</Text>
-                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{selectedPallet && (binQty < selectedPallet.quantity ? `Deducted ${numberCommaFormat(-1 * (binQty - selectedPallet.quantity))}` : binQty > selectedPallet.quantity ? `Added ${numberCommaFormat(binQty - selectedPallet.quantity)}` : "")}</Text>
+                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{selectedPallet && (binQty < palletQty ? `Deducted ${numberCommaFormat(-1 * (binQty - palletQty))}` : binQty > palletQty ? `Added ${numberCommaFormat(binQty - palletQty)}` : "")}</Text>
                     <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
                         <TouchableOpacity onPress={() => {
                             setConfirmVisible(false);
@@ -147,6 +175,14 @@ const updatePallet = async (palletId) => {
                             setSelectedPallet('');
                             setScannedPallet('');
                             setVerifyPalletText('');
+
+                            setPallet();
+                            setPalletBin('');
+                            setPalletExpiry('');
+                            setPalletId(0);
+                            setPalletDataId(0);
+                            setPalletQty(0);
+                            setBinQty(0);
                         }}>
                             <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(20), fontWeight: 'bold'}}>Close</Text>
                         </TouchableOpacity>
@@ -164,14 +200,15 @@ const updatePallet = async (palletId) => {
                     value={scannedPallet}
                     onChangeText={(text) => {
                         setScannedPallet(text);
-                        if (palletIdArr.includes(parseInt(text))) {
-                            setPalletIndex(palletIdArr.indexOf(parseInt(text)));
-                            setSelectedPallet(pallets[palletIdArr.indexOf(parseInt(text))]);
-                            setBinQty(pallets[palletIdArr.indexOf(parseInt(text))].quantity);
-                        } else {
-                            setErrorMessage('Not a valid pallet');
-                            setErrorVisible(true);
-                        }
+                        getPallet(text);
+                        // if (palletIdArr.includes(parseInt(text))) {
+                        //     setPalletIndex(palletIdArr.indexOf(parseInt(text)));
+                        //     setSelectedPallet(pallets[palletIdArr.indexOf(parseInt(text))]);
+                        //     setBinQty(pallets[palletIdArr.indexOf(parseInt(text))].quantity);
+                        // } else {
+                        //     setErrorMessage('Not a valid pallet');
+                        //     setErrorVisible(true);
+                        // }
                     }}
                 />
                 <TouchableOpacity 
@@ -184,11 +221,19 @@ const updatePallet = async (palletId) => {
                         setSelectedPallet('');
                         setScannedPallet('');
                         setVerifyPalletText('');
+
+                        setPallet();
+                        setPalletBin('');
+                        setPalletExpiry('');
+                        setPalletId(0);
+                        setPalletDataId(0);
+                        setPalletQty(0);
+                        setBinQty(0);
                     }}
                     >
                     <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Clear</Text>
                 </TouchableOpacity>
-                    {selectedPallet &&
+                    {pallet &&
                         <View style={{ backgroundColor: '#2b2b2b', borderColor: '#5f5f5f', borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(20)}}>
                             <TouchableOpacity onPress={() => {
                                 if (!showQty) {
@@ -198,21 +243,21 @@ const updatePallet = async (palletId) => {
                                 <View style={{display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-between'}}>
                                     <Text style={{color: '#979595', marginLeft: 10, fontSize: rs(14)}}>Pallet Location</Text>
                                     <View style={styles.palletTag}>
-                                        <Text style={{color: '#28dba3', fontSize: rs(14)}}>#{selectedPallet.palletId}</Text>
+                                        <Text style={{color: '#28dba3', fontSize: rs(14)}}>#{palletId}</Text>
                                     </View>
                                 </View>
                                 <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-around', marginTop: 10, flexWrap: 'wrap'}}>
                                     <View>
                                         <Text style={[styles.palletCol, { fontSize: rs(12) }]}>LOCATION NAME</Text>
-                                        <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{selectedPallet.binNumber}</Text>
+                                        <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{palletBin}</Text>
                                     </View>
                                     <View>
                                         <Text style={[styles.palletCol, { fontSize: rs(12) }]}>QUANTITY</Text>
-                                        <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{numberCommaFormat(selectedPallet.quantity)}</Text>
+                                        <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{numberCommaFormat(palletQty)}</Text>
                                     </View>
                                     <View>
                                         <Text style={[styles.palletCol, { fontSize: rs(12) }]}>EXPIRATION</Text>
-                                        <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{selectedPallet.expiryDate}</Text>
+                                        <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{palletExpiry}</Text>
                                     </View>
                                 </View>
                             </TouchableOpacity>
@@ -227,7 +272,7 @@ const updatePallet = async (palletId) => {
                                         value={verifyPalletText}
                                         onChangeText={(text) => {
                                             setVerifyPalletText(text);
-                                            if (parseInt(text) === selectedPallet.palletId) {
+                                            if (parseInt(text) === palletId) {
                                                 setVerifyPallet(false);
                                                 setShowQty(true);
                                             } else {
@@ -281,8 +326,8 @@ const updatePallet = async (palletId) => {
                                                 }}><Text style={[styles.qtyBtnText, { fontSize: rs(30) }]}>+</Text></TouchableOpacity>
                                             </View>
                                             <View>
-                                                <Text style={{color: '#929292', textAlign: 'center', marginTop: 10, fontSize: rs(13)}}>{binQty < selectedPallet.quantity ? `Deducting ${numberCommaFormat(-1 * (binQty - selectedPallet.quantity))}`
-                                                : binQty > selectedPallet.quantity ? `Adding ${numberCommaFormat(binQty - selectedPallet.quantity)}` : ""}</Text>
+                                                <Text style={{color: '#929292', textAlign: 'center', marginTop: 10, fontSize: rs(13)}}>{binQty < palletQty ? `Deducting ${numberCommaFormat(-1 * (binQty - palletQty))}`
+                                                : binQty > palletQty ? `Adding ${numberCommaFormat(binQty - palletQty)}` : ""}</Text>
 
                                                 <TouchableOpacity 
                                                     style={[styles.applyBtn, { marginTop: 20, width: '50%', marginHorizontal: 'auto', padding: rs(10), borderRadius: rs(8) }]}
@@ -368,7 +413,7 @@ const updatePallet = async (palletId) => {
                                                 <View style={{display: 'flex', flexDirection: 'row'}}>
                                                     <TouchableOpacity style={[styles.applyBtn, { marginTop: 20, width: '40%', marginHorizontal: 'auto', padding: rs(10), borderRadius: rs(8) }]}
                                                     onPress={() => {
-                                                        updatePallet(selectedPallet.palletDataId);
+                                                        updatePallet(palletDataId);
                                                     }}>
                                                         <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Apply</Text>
                                                     </TouchableOpacity>

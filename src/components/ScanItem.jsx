@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { router } from 'expo-router';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Image, ImageBackground, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { setItemId, setItems, setPallets } from '../../redux/itemSlice';
@@ -23,6 +23,8 @@ const ScanItem = ({}) => {
     const [palletCount, setPalletCount] = useState(0);
     const [palletQty, setPalletQty] = useState(0);
     const [binNum, setBinNum] = useState(0);
+    const [defaultPrimaryQty, setDefaultPrimaryQty] = useState(0);
+    const [defaultSecondaryQty, setDefaultSecondaryQty] = useState(0);
     const [whQty, setWhQty] = useState(0);
     const [ccQty, setCcQty] = useState(0);
 
@@ -74,6 +76,8 @@ const ScanItem = ({}) => {
                 console.log("RESPONSE: ", response.data);
                 if (response.data.success) {
                     setItemObj(response.data.itemData);
+                    setDefaultPrimaryQty(response.data.itemData[0].primaryBinQuantity);
+                    setDefaultSecondaryQty(response.data.itemData[0].secondaryBinQuantity);
                     dispatch(setItemId(response.data.itemData[0].id));
                     dispatch(setItems(response.data.itemData));
                     dispatch(setPallets(response.data.itemData[0].palletData));
@@ -95,7 +99,7 @@ const ScanItem = ({}) => {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
     }
 
-    const updateBinQty= async (bin, qty) => {
+    const updateBinQty= async (bin, qty, variance) => {
         console.log("itemId: ", itemObj[0].id);
         console.log("employeeId: ", employeeId);
         console.log("qty: ", qty);
@@ -105,10 +109,20 @@ const ScanItem = ({}) => {
                 employeeId: employeeId,
                 itemID: itemObj[0].id,
                 binNumber: bin,
-                quantity: qty
+                countedQty: qty,
+                varianceQty: variance
             }).then(response => {
                 console.log("updateBin: ", response.data);
                 if (response.data.success) {
+
+                    if (bin[0] === "Z") {
+                        setDefaultPrimaryQty(qty);
+                    }
+
+                    if (bin[0] === "C") {
+                        setDefaultSecondaryQty(qty);
+                    }
+
                     setConfirmMessage("Quantity updated");
                     setConfirmVisible(true);
                 }
@@ -256,11 +270,11 @@ const ScanItem = ({}) => {
                 <View style={{backgroundColor: '#000000bb', width: '70%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(125), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
                     {editWHQty && <>
                     <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{confirmMessage}</Text>
-                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{whQty < itemObj[0].primaryBinQuantity ? `Deducted ${numberCommaFormat(1 * (whQty - itemObj[0].primaryBinQuantity))}`: whQty > itemObj[0].primaryBinQuantity ? `Added ${numberCommaFormat(whQty - itemObj[0].primaryBinQuantity)}` : ""}</Text>
+                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{whQty < defaultPrimaryQty ? `Deducted ${numberCommaFormat(1 * (whQty - defaultPrimaryQty))}`: whQty > defaultPrimaryQty ? `Added ${numberCommaFormat(whQty - defaultPrimaryQty)}` : ""}</Text>
                     </>}
                     {editCCQty && <>
                     <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{confirmMessage}</Text>
-                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{ccQty < itemObj[0].secondaryBinQuantity ? `Deducted ${numberCommaFormat(-1 * (ccQty - itemObj[0].secondaryBinQuantity))}`: ccQty > itemObj[0].secondaryBinQuantity ? `Added ${numberCommaFormat(ccQty - itemObj[0].secondaryBinQuantity)}` : ""}</Text>
+                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{ccQty < defaultSecondaryQty ? `Deducted ${numberCommaFormat(-1 * (ccQty - defaultSecondaryQty))}`: ccQty > defaultSecondaryQty ? `Added ${numberCommaFormat(ccQty - defaultSecondaryQty)}` : ""}</Text>
                     </>}
                     <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
                         <TouchableOpacity onPress={() => {
@@ -326,7 +340,7 @@ const ScanItem = ({}) => {
                                         {editWHQty === false && <View style={styles.itemDetailFlex}>
                                             <Text style={[styles.itemDetailsHead, { fontSize: rs(13) }]}>Quantity</Text>
                                                 <View style={styles.textGroup}>
-                                                    <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{numberCommaFormat(itemObj[0].primaryBinQuantity)}</Text>
+                                                    <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{numberCommaFormat(defaultPrimaryQty)}</Text>
                                                     <TouchableOpacity onPress={() => {
                                                         setEditWHQty(true);
                                                         setEditCCQty(false);
@@ -342,7 +356,7 @@ const ScanItem = ({}) => {
                                             {/* <Text style={styles.itemDetailsHead}>Quantity</Text> */}
                                                 <View style={{...styles.textGroup, width: '100%', marginVertical: 20}}>
                                                     <View>
-                                                        <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(23)}}>{numberCommaFormat(itemObj[0].primaryBinQuantity)}</Text>
+                                                        <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(23)}}>{numberCommaFormat(defaultPrimaryQty)}</Text>
                                                         <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
                                                             <TouchableOpacity style={[styles.qtyBtn, { width: rs(50), height: rs(50) }]} onPress={() => {
                                                                 setWhQty(prevQty => {
@@ -368,12 +382,16 @@ const ScanItem = ({}) => {
                                                             }}><Text style={[styles.qtyBtnText, { fontSize: rs(30) }]}>+</Text></TouchableOpacity>
                                                         </View>
                                                         <View>
-                                                        {Number.isFinite(whQty) > 0 && <Text style={{color: '#fff', textAlign: 'center', marginTop: 10, fontSize: rs(20)}}>{whQty && (whQty < itemObj[0].primaryBinQuantity ? `Deducting ${numberCommaFormat(-1 * (whQty - itemObj[0].primaryBinQuantity))}`
-                                                         : whQty > itemObj[0].primaryBinQuantity ? `Adding: ${numberCommaFormat(parseInt(whQty) - itemObj[0].primaryBinQuantity) }` : "")}</Text>}
+                                                        {Number.isFinite(whQty) && <Text style={{color: '#fff', textAlign: 'center', marginTop: 10, fontSize: rs(20)}}>
+                                                        {whQty < defaultPrimaryQty
+                                                            ? `Deducting ${numberCommaFormat(-1 * (whQty - defaultPrimaryQty))}`
+                                                            : whQty > defaultPrimaryQty
+                                                                ? `Adding: ${numberCommaFormat(parseInt(whQty) - defaultPrimaryQty)}`
+                                                                : ""}</Text>}
                                                          {/* {Number.isFinite(whQty) > 0 && <Text style={{color: '#fff', textAlign: 'center', marginTop: 10, fontSize: rs(20)}}>New Total: {whQty}</Text>} */}
                                                         <TouchableOpacity style={{...styles.applyBtn, marginTop: 20, width: '50%', marginHorizontal: 'auto', padding: rs(10), borderRadius: rs(8)}}
                                                         onPress={() => {
-                                                            updateBinQty(itemObj[0].primaryBin, parseInt(whQty) - itemObj[0].primaryBinQuantity);
+                                                            updateBinQty(itemObj[0].primaryBin, parseInt(whQty), parseInt(whQty) - defaultPrimaryQty);
                                                         }}>
                                                             <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Apply</Text>
                                                         </TouchableOpacity>
@@ -392,7 +410,7 @@ const ScanItem = ({}) => {
                                         {editCCQty === false && <View style={styles.itemDetailFlex}>
                                             <Text style={[styles.itemDetailsHead, { fontSize: rs(13) }]}>Quantity</Text>
                                                 <View style={styles.textGroup}>
-                                                    <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{numberCommaFormat(itemObj[0].secondaryBinQuantity)}</Text>
+                                                    <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{numberCommaFormat(defaultSecondaryQty)}</Text>
                                                     <TouchableOpacity onPress={() => {
                                                         setEditCCQty(true);
                                                         setEditWHQty(false);
@@ -408,7 +426,7 @@ const ScanItem = ({}) => {
                                             {/* <Text style={styles.itemDetailsHead}>Quantity</Text> */}
                                                 <View style={{...styles.textGroup, width: '100%', marginVertical: 20}}>
                                                     <View>
-                                                        <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(23)}}>{numberCommaFormat(itemObj[0].secondaryBinQuantity)}</Text>
+                                                        <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(23)}}>{numberCommaFormat(defaultSecondaryQty)}</Text>
                                                         <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
                                                             <TouchableOpacity style={[styles.qtyBtn, { width: rs(50), height: rs(50) }]} onPress={() => {
                                                                 setCcQty(prevQty => {
@@ -434,13 +452,17 @@ const ScanItem = ({}) => {
                                                             }}><Text style={[styles.qtyBtnText, { fontSize: rs(30) }]}>+</Text></TouchableOpacity>
                                                         </View>
                                                         <View>
-                                                        {Number.isFinite(ccQty) > 0 && <Text style={{color: '#fff', textAlign: 'center', marginTop: 10, fontSize: rs(20)}}>{ccQty && (ccQty < itemObj[0].secondaryBinQuantity ? `Deducting ${numberCommaFormat(-1 * (ccQty - itemObj[0].secondaryBinQuantity))}`
-                                                         : ccQty > itemObj[0].secondaryBinQuantity ? `Adding: ${numberCommaFormat(parseInt(ccQty) - itemObj[0].secondaryBinQuantity) }` : "")}</Text>}
+                                                        {Number.isFinite(ccQty) && <Text style={{color: '#fff', textAlign: 'center', marginTop: 10, fontSize: rs(20)}}>
+                                                        {ccQty < defaultSecondaryQty
+                                                            ? `Deducting ${numberCommaFormat(-1 * (ccQty - defaultSecondaryQty))}`
+                                                            : ccQty > defaultSecondaryQty
+                                                                ? `Adding: ${numberCommaFormat(parseInt(ccQty) - defaultSecondaryQty)}`
+                                                                : ""}</Text>}
                                                          {/* {Number.isFinite(ccQty) > 0 && <Text style={{color: '#fff', textAlign: 'center', marginTop: 10, fontSize: rs(20)}}>New Total: {ccQty}</Text>} */}
                                                          <TouchableOpacity 
                                                             style={{...styles.applyBtn, marginTop: 20, width: '50%', marginHorizontal: 'auto', padding: rs(10), borderRadius: rs(8)}}
                                                             onPress={() => {
-                                                                updateBinQty(itemObj[0].secondaryBin, parseInt(ccQty) - itemObj[0].secondaryBinQuantity);
+                                                                updateBinQty(itemObj[0].secondaryBin, parseInt(ccQty), parseInt(ccQty) - defaultSecondaryQty);
                                                             }}>
                                                             <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Apply</Text>
                                                         </TouchableOpacity>
