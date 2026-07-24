@@ -5,9 +5,12 @@ import * as ScreenOrientation from "expo-screen-orientation";
 import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
+  AppState,
   Image,
   Modal,
   Platform,
+  ScrollView,
+  Share,
   StyleSheet,
   Text,
   TextInput,
@@ -18,6 +21,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { setEmployeeId, setIp } from '../../redux/itemSlice';
 import useResponsive from '../hooks/useResponsive';
+import { addLog, clearLogs, formatLogsAsText, getLogs } from '../utils/scanLogger';
 
 const ghraLogo = require('../../assets/images/WH-New-Logo-PNG-scaled.png');
 const gear = require('../../assets/images/settings.png');
@@ -42,8 +46,17 @@ const Scan = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [lastSubmitted, setLastSubmitted] = useState('');
 
+  // ## LOGGING ## - hidden log viewer (long-press the version text)
+  const [logsVisible, setLogsVisible] = useState(false);
+  const [logEntries, setLogEntries] = useState([]);
+
   const inputRef = useRef(null);
   const badgeIdRef = useRef('');
+  const modalOpenRef = useRef(false); // tracks whether any modal is up, used by refocus logic
+
+  useEffect(() => {
+    modalOpenRef.current = modalVisible || settingsVisible || logsVisible;
+  }, [modalVisible, settingsVisible, logsVisible]);
 
   async function playSound() {
     player.seekTo(0);
@@ -105,12 +118,18 @@ const Scan = ({ navigation }) => {
     badgeIdRef.current = '';
 
     if (!cleaned.includes("TA")) {
+      // ## LOGGING ## - this is a dead end: no API call ever happens for this path.
+      // If the API developer sees scans that never reach the server, this is
+      // one of the first places to check - it usually means characters were
+      // dropped from the scan (e.g. focus was lost mid-scan).
+      addLog('badge_rejected_no_TA', { raw: rawValue, cleaned });
       Alert.alert("That is not a valid badge");
       setBadgeId('');
       setLastSubmitted('');
       return;
     }
 
+    addLog('submit_start', { cleaned });
     sendScannedData(cleaned);
   }
 
@@ -118,11 +137,23 @@ const Scan = ({ navigation }) => {
     console.log("CODE: ", code)
     console.log("sendScannedData running");
     if (!code) return;
-    if (loading) return;
-    if (code === lastSubmitted) return;
+
+    if (loading) {
+      // ## LOGGING ## - a scan came in while a previous request was still
+      // in flight and was silently dropped.
+      addLog('submit_skipped_already_loading', { code });
+      return;
+    }
+    if (code === lastSubmitted) {
+      // ## LOGGING ## - duplicate-scan debounce swallowed this one.
+      addLog('submit_skipped_duplicate', { code });
+      return;
+    }
 
     setLoading(true);
     setLastSubmitted(code);
+
+    addLog('api_request_start', { code });
 
     try {
       const response = await axios.post(
@@ -136,8 +167,10 @@ const Scan = ({ navigation }) => {
       const emp = response?.data?.data?.[0];
 
       if (!response?.data?.success || !emp) {
+        addLog('api_request_no_employee', { code, success: response?.data?.success });
         throw new Error(`Employee not found in DB: ${code}`);
       } else {
+          addLog('api_request_success', { code, employeeID: emp.employeeID });
           dispatch(setEmployeeId(emp.employeeID));
       }
 
@@ -158,7 +191,13 @@ const Scan = ({ navigation }) => {
       const detail = err?.response?.status
         || err?.code
         || err?.message;
-      await showError(`[${detail}] ${err?.message}`);
+      // ## LOGGING ## - also fixes a real bug: `Alert` is not callable,
+      // it's the react-native module object. The original code
+      // `await Alert(...)` threw a TypeError here, which was an unhandled
+      // rejection that silently ate the real error - the user (and the
+      // API developer) never saw why the request failed.
+      addLog('api_request_error', { code, detail: String(detail) });
+      Alert.alert('Error', `[${detail}] ${err?.message}`);
     } finally {
       setLoading(false);
     }
@@ -171,6 +210,7 @@ const Scan = ({ navigation }) => {
     };
 
     const timer = setTimeout(lock, 100);
+    addLog('screen_mounted');
 
     return () => {
       clearTimeout(timer);
@@ -186,8 +226,39 @@ const Scan = ({ navigation }) => {
     }
   }, [ip])
 
+  // ## LOGGING ## - app backgrounding is a common cause of "the badge was
+  // scanned but nothing happened": if the device sleeps or another app
+  // comes forward mid-scan, the wedge scanner's keystrokes can be lost
+  // or delivered to the wrong place entirely.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (nextState) => {
+      addLog('app_state_change', { nextState });
+    });
+    return () => sub.remove();
+  }, []);
+
   // Note: useAudioPlayer manages its own loading/unloading lifecycle,
   // so no manual cleanup effect is needed here.
+
+  async function openLogViewer() {
+    const logs = await getLogs();
+    setLogEntries(logs);
+    setLogsVisible(true);
+  }
+
+  async function handleShareLogs() {
+    try {
+      const text = formatLogsAsText(logEntries);
+      await Share.share({ message: text });
+    } catch (err) {
+      console.log('handleShareLogs error:', err?.message);
+    }
+  }
+
+  async function handleClearLogs() {
+    await clearLogs();
+    setLogEntries([]);
+  }
 
   return (
     <View style={styles.container}>
@@ -263,6 +334,52 @@ const Scan = ({ navigation }) => {
           </View>
         </Modal>
 
+        {/* ## LOGGING ## - diagnostics viewer, opened via the "Logs" button
+            top-left. Closing it (X button) just dismisses the modal and
+            returns to the Scan Badge screen underneath. */}
+        <Modal transparent visible={logsVisible} animationType="fade">
+          <View style={styles.modalBackdrop}>
+            <View style={[styles.modalView, { width: wp(92), maxWidth: rs(500), maxHeight: '80%' }]}>
+              <TouchableOpacity
+                style={{ position: 'absolute', right: 10, top: 10, zIndex: 1 }}
+                onPress={() => setLogsVisible(false)}
+              >
+                <Text style={{ fontSize: 30 }}>X</Text>
+              </TouchableOpacity>
+              <Text style={[styles.modalText, { fontSize: rs(18), marginTop: 20 }]}>
+                Scan Diagnostics (last 48h)
+              </Text>
+              <ScrollView style={{ maxHeight: rs(350), width: '100%' }}>
+                <Text style={{ fontSize: rs(12), fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' }}>
+                  {formatLogsAsText(logEntries)}
+                </Text>
+              </ScrollView>
+              <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', marginTop: 15, width: '100%' }}>
+                <TouchableOpacity
+                  style={[styles.clearButton, { paddingVertical: rs(10), paddingHorizontal: rs(20) }]}
+                  onPress={handleShareLogs}
+                >
+                  <Text style={[styles.clearButtonText, { fontSize: rs(16) }]}>Share</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.clearButton, { paddingVertical: rs(10), paddingHorizontal: rs(20), backgroundColor: 'red' }]}
+                  onPress={handleClearLogs}
+                >
+                  <Text style={[styles.clearButtonText, { fontSize: rs(16) }]}>Clear Logs</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* ## LOGGING ## - visible button to open the diagnostics log viewer */}
+        <TouchableOpacity
+          style={styles.logButton}
+          onPress={openLogViewer}
+        >
+          <Text style={styles.logButtonText}>Logs</Text>
+        </TouchableOpacity>
+
         <Image
           style={[styles.logo, { width: rs(400), height: rs(400), maxWidth: wp(100), maxHeight: wp(80) }]}
           source={ghraLogo}
@@ -284,7 +401,7 @@ const Scan = ({ navigation }) => {
           />
         </TouchableOpacity> */}
 
-        <Text style={[styles.version, { fontSize: rs(12) }]}>Version 1.4 (Bin App)</Text>
+        <Text style={[styles.version, { fontSize: rs(12) }]}>Version 1.5 (Bin App)</Text>
 
         <View style={styles.scanBox}>
           <TextInput
@@ -310,6 +427,25 @@ const Scan = ({ navigation }) => {
             onSubmitEditing={() => {
               console.log('onSubmitEditing fired — ref:', JSON.stringify(badgeIdRef.current), '| state:', JSON.stringify(badgeId));
               handleSubmit(badgeIdRef.current || badgeId);
+            }}
+            onBlur={() => {
+              // ## LOGGING ## - this is the prime suspect for "scanned but
+              // no API call": the scanner behaves like a keyboard, so if
+              // this input isn't focused, its keystrokes go nowhere and
+              // there is no error to show because handleSubmit is never
+              // even called. Log it, and re-focus automatically unless a
+              // modal is intentionally open.
+              addLog('scan_input_blurred', { hadPartialInput: !!badgeIdRef.current });
+              if (!modalOpenRef.current) {
+                setTimeout(() => {
+                  if (!modalOpenRef.current && inputRef.current) {
+                    inputRef.current.focus();
+                  }
+                }, 150);
+              }
+            }}
+            onFocus={() => {
+              addLog('scan_input_focused');
             }}
             returnKeyType="done"
           />
@@ -344,6 +480,22 @@ const styles = StyleSheet.create({
   },
   logo: { alignSelf: 'center' },
   version: { alignSelf: 'center' },
+
+  logButton: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    zIndex: 10,
+    backgroundColor: 'rgb(0, 85, 165)',
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 6,
+  },
+  logButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
 
   scanBox: {
     alignItems: 'center',
