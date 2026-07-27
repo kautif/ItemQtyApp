@@ -99,7 +99,7 @@ const ScanItem = ({}) => {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
     }
 
-    const updateBinQty= async (bin, qty, variance) => {
+    const updateBinQty= async (bin, qty, variance, locationType) => {
         console.log("itemId: ", itemObj[0].id);
         console.log("employeeId: ", employeeId);
         console.log("qty: ", qty);
@@ -115,11 +115,11 @@ const ScanItem = ({}) => {
                 console.log("updateBin: ", response.data);
                 if (response.data.success) {
 
-                    if (bin[0] === "Z") {
+                    if (locationType === "primary") {
                         setDefaultPrimaryQty(qty);
                     }
 
-                    if (bin[0] === "C") {
+                    if (locationType === "secondary") {
                         setDefaultSecondaryQty(qty);
                     }
 
@@ -391,7 +391,7 @@ const ScanItem = ({}) => {
                                                          {/* {Number.isFinite(whQty) > 0 && <Text style={{color: '#fff', textAlign: 'center', marginTop: 10, fontSize: rs(20)}}>New Total: {whQty}</Text>} */}
                                                         <TouchableOpacity style={{...styles.applyBtn, marginTop: 20, width: '50%', marginHorizontal: 'auto', padding: rs(10), borderRadius: rs(8)}}
                                                         onPress={() => {
-                                                            updateBinQty(itemObj[0].primaryBin, parseInt(whQty), parseInt(whQty) - defaultPrimaryQty);
+                                                            updateBinQty(itemObj[0].primaryBin, parseInt(whQty), parseInt(whQty) - defaultPrimaryQty, "primary");
                                                         }}>
                                                             <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Apply</Text>
                                                         </TouchableOpacity>
@@ -462,7 +462,7 @@ const ScanItem = ({}) => {
                                                          <TouchableOpacity 
                                                             style={{...styles.applyBtn, marginTop: 20, width: '50%', marginHorizontal: 'auto', padding: rs(10), borderRadius: rs(8)}}
                                                             onPress={() => {
-                                                                updateBinQty(itemObj[0].secondaryBin, parseInt(ccQty), parseInt(ccQty) - defaultSecondaryQty);
+                                                                updateBinQty(itemObj[0].secondaryBin, parseInt(ccQty), parseInt(ccQty) - defaultSecondaryQty, "secondary");
                                                             }}>
                                                             <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Apply</Text>
                                                         </TouchableOpacity>

@@ -187,7 +187,7 @@ const updatePallet = async (palletId) => {
             }}>
                 <View style={{backgroundColor: '#000000bb', width: '70%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(125), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
                     <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{confirmMessage}</Text>
-                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{selectedPallet && (binQty < palletQty ? `Deducted ${numberCommaFormat(-1 * (binQty - palletQty))}` : binQty > palletQty ? `Added ${numberCommaFormat(binQty - palletQty)}` : "")}</Text>
+                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{(binQty < palletQty ? `Deducted ${numberCommaFormat(-1 * (binQty - palletQty))}` : binQty > palletQty ? `Added ${numberCommaFormat(binQty - palletQty)}` : "")}</Text>
                     <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
                         <TouchableOpacity onPress={() => {
                             setConfirmVisible(false);
