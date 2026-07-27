@@ -23,6 +23,7 @@ const Storage = ({}) => {
     const [palletIndex, setPalletIndex] = useState(0);
     const [selectedPallet, setSelectedPallet] = useState();
     const [verifyPalletText, setVerifyPalletText] = useState('');
+    const [lastPallets, setLastPallets] = useState();
 
     const [confirmVisible, setConfirmVisible] = useState(false);
     const [confirmMessage, setConfirmMessage] = useState('');
@@ -87,6 +88,27 @@ const updatePallet = async (palletId) => {
                 if (response.data.success) {
                     setConfirmMessage("Pallet Updated");
                     setConfirmVisible(true);
+                    setTimeout(() => {
+                        scanPalletRef.current?.focus();
+                    }, 100)
+                }
+            }).catch(err => {
+                console.error(err.response.data.reason);
+                setErrorMessage(err.response.data.reason);
+                setErrorVisible(true);
+            })
+    }
+
+    const latestPallets = async () => {
+        return axios.post('http://192.168.2.165:81/api/Item/getItemLatestPallet', {
+                token: 'Yh2k7QSu4l8CZg5p6X3Pna9L0Miy4D3Bvt0JVr87UcOj69Kqw5R2Nmf4FWs03Hdx',
+                itemID: itemId
+            }).then(response => {
+                console.log("pallet response: ", response.data.palletData);
+                if (response.data.success) {
+                    // setConfirmMessage("Pallet Updated");
+                    // setConfirmVisible(true);
+                    setLastPallets(response.data.palletData);
                     setTimeout(() => {
                         scanPalletRef.current?.focus();
                     }, 100)
@@ -189,7 +211,7 @@ const updatePallet = async (palletId) => {
                     </View>
                 </View>
             </Modal>
-            <ScrollView style={{marginBottom: 40}} contentContainerStyle={{ paddingHorizontal: '4%' }}>
+            <ScrollView style={{marginBottom: 60}} contentContainerStyle={{ paddingHorizontal: '4%' }}>
                 <TextInput 
                     ref={scanPalletRef}
                     placeholder='Scan Pallet'
@@ -199,6 +221,7 @@ const updatePallet = async (palletId) => {
                     style={[styles.qtyInput, { textAlign: 'center', color: '#fff', marginTop: rs(40), width: wp(50), maxWidth: rs(200), fontSize: rs(20) }]}
                     value={scannedPallet}
                     onChangeText={(text) => {
+                        setLastPallets();
                         setScannedPallet(text);
                         getPallet(text);
                         // if (palletIdArr.includes(parseInt(text))) {
@@ -209,30 +232,38 @@ const updatePallet = async (palletId) => {
                         //     setErrorMessage('Not a valid pallet');
                         //     setErrorVisible(true);
                         // }
-                    }}
-                />
-                <TouchableOpacity 
-                    style={[styles.applyBtn, { padding: rs(10), borderRadius: rs(8), width: '50%', marginHorizontal: 'auto' }]}
-                    onPress={() => {
-                        setConfirmVisible(false);
-                        setShowCalendar(false);
-                        setVerifyPallet(false);
-                        setShowQty(false);
-                        setSelectedPallet('');
-                        setScannedPallet('');
-                        setVerifyPalletText('');
+                    }}/>
+                <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-around'}}>
+                    <TouchableOpacity 
+                        style={[styles.applyBtn, { padding: rs(10), borderRadius: rs(8), width: '40%', marginHorizontal: 'auto' }]}
+                        onPress={() => {
+                            setConfirmVisible(false);
+                            setShowCalendar(false);
+                            setVerifyPallet(false);
+                            setShowQty(false);
+                            setSelectedPallet('');
+                            setScannedPallet('');
+                            setVerifyPalletText('');
 
-                        setPallet();
-                        setPalletBin('');
-                        setPalletExpiry('');
-                        setPalletId(0);
-                        setPalletDataId(0);
-                        setPalletQty(0);
-                        setBinQty(0);
-                    }}
-                    >
-                    <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Clear</Text>
-                </TouchableOpacity>
+                            setPallet();
+                            setPalletBin('');
+                            setPalletExpiry('');
+                            setLastPallets();
+                            setPalletId(0);
+                            setPalletDataId(0);
+                            setPalletQty(0);
+                            setBinQty(0);
+                        }}>
+                        <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Clear</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={[styles.applyBtn, { backgroundColor: 'blue', padding: rs(10), borderRadius: rs(8), width: '40%', marginHorizontal: 'auto' }]}
+                        onPress={() => {
+                            latestPallets();
+                        }}>
+                        <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>View Pallets</Text>
+                    </TouchableOpacity>
+                </View>
                     {pallet &&
                         <View style={{ backgroundColor: '#2b2b2b', borderColor: '#5f5f5f', borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(20)}}>
                             <TouchableOpacity onPress={() => {
@@ -432,6 +463,33 @@ const updatePallet = async (palletId) => {
                                     </View>
                             </View>}
                         </View>}
+                                {lastPallets && lastPallets.map((recentPallet, i) => {
+                                    console.log("recent pallet: ", recentPallet);
+                                    return <View
+                                                style={{ backgroundColor: '#2b2b2b', borderColor: '#5f5f5f', borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(20)}} 
+                                                key={`pallet-${i}`}>
+                                        <View style={{display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-between'}}>
+                                            <Text style={{color: '#979595', marginLeft: 10, fontSize: rs(14)}}>Pallet Location</Text>
+                                            <View style={styles.palletTag}>
+                                                <Text style={{color: '#28dba3', fontSize: rs(14)}}>#{recentPallet.palletId}</Text>
+                                            </View>
+                                        </View>
+                                        <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-around', marginTop: 10, flexWrap: 'wrap'}}>
+                                            <View>
+                                                <Text style={[styles.palletCol, { fontSize: rs(12) }]}>LOCATION NAME</Text>
+                                                <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{recentPallet.binNumber}</Text>
+                                            </View>
+                                            <View>
+                                                <Text style={[styles.palletCol, { fontSize: rs(12) }]}>QUANTITY</Text>
+                                                {/* <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{numberCommaFormat(recentPallet[i].quantity)}</Text> */}
+                                            </View>
+                                            <View>
+                                                <Text style={[styles.palletCol, { fontSize: rs(12) }]}>EXPIRATION</Text>
+                                                <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{recentPallet.expiryDate}</Text>
+                                            </View>
+                                        </View>
+                                    </View>
+                                })}
             </ScrollView>
         </ImageBackground>
     )
