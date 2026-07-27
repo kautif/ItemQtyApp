@@ -481,7 +481,7 @@ const updatePallet = async (palletId) => {
                                             </View>
                                             <View>
                                                 <Text style={[styles.palletCol, { fontSize: rs(12) }]}>QUANTITY</Text>
-                                                {/* <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{numberCommaFormat(recentPallet[i].quantity)}</Text> */}
+                                                <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{numberCommaFormat(recentPallet[i].quantity)}</Text>
                                             </View>
                                             <View>
                                                 <Text style={[styles.palletCol, { fontSize: rs(12) }]}>EXPIRATION</Text>
