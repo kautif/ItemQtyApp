@@ -401,7 +401,7 @@ const ScanItem = ({}) => {
                                         </View>}
                                     </View>
                                 </View>
-                                <View style={{...styles.itemOverview, marginTop: 10, paddingBottom: 0, borderTopEndRadius: 10, borderTopLeftRadius: 10}}>
+                                {itemObj[0].secondaryBin.length > 0 && <View style={{...styles.itemOverview, marginTop: 10, paddingBottom: 0, borderTopEndRadius: 10, borderTopLeftRadius: 10}}>
                                     <View style={{...styles.itemDetailFlex, flexDirection: 'column'}}>
                                         <Text style={[styles.itemDetailsHead, { marginBottom: 5, marginLeft: 20, fontSize: rs(13) }]}>Cash/Carry Location</Text>
                                         <Text style={[styles.itemQty, { alignSelf: 'flex-start', fontSize: rs(15), marginTop: 0, marginLeft: 20 }]}>{itemObj[0].secondaryBin}</Text>
@@ -471,7 +471,7 @@ const ScanItem = ({}) => {
                                                 </View>
                                         </View>}
                                     </View>
-                                </View>
+                                </View>}
                                 <View style={{...styles.itemOverview, marginTop: 10, paddingBottom: 0, borderTopEndRadius: 10, borderTopLeftRadius: 10, }}>
                                     <TouchableOpacity onPress={() => {
                                         router.push('storage')

@@ -25,9 +25,15 @@ const itemSlice = createSlice({
         },
         setIp: (state, action) => {
             state.ip = action.payload;
+        },
+        resetUser: (state, action) => {
+            state.items = [];
+            state.pallets = [];
+            state.itemId = 0;
+            state.employeeId = '';
         }
     }
 })
 
-export const {setItems, setPallets, setItemId, setEmployeeId, setIp } = itemSlice.actions;
+export const {setItems, setPallets, setItemId, setEmployeeId, setIp, resetUser } = itemSlice.actions;
 export default itemSlice.reducer;
