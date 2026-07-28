@@ -74,6 +74,9 @@ const getPallet = async (palletId) => {
             setErrorMessage(response.data.reason);
             setErrorVisible(true); 
         }
+    }).catch(err => {
+        setErrorMessage(err.response.data.reason);
+        setErrorVisible(true); 
     })
 }
 
