@@ -70,6 +70,9 @@ const getPallet = async (palletId) => {
             setPalletDataId(response.data.palletData[0].palletDataId);
             setPalletQty(response.data.palletData[0].quantity);
             setBinQty(response.data.palletData[0].quantity);
+        } else {
+            setErrorMessage(response.data.reason);
+            setErrorVisible(true); 
         }
     })
 }
@@ -223,7 +226,6 @@ const updatePallet = async (palletId) => {
                     onChangeText={(text) => {
                         setLastPallets();
                         setScannedPallet(text);
-                        getPallet(text);
                         // if (palletIdArr.includes(parseInt(text))) {
                         //     setPalletIndex(palletIdArr.indexOf(parseInt(text)));
                         //     setSelectedPallet(pallets[palletIdArr.indexOf(parseInt(text))]);
@@ -232,7 +234,12 @@ const updatePallet = async (palletId) => {
                         //     setErrorMessage('Not a valid pallet');
                         //     setErrorVisible(true);
                         // }
-                    }}/>
+                    }}
+                    onSubmitEditing={(btn) => {
+                        getPallet(scannedPallet);
+                        console.log("button: ", scannedPallet);
+                    }}
+                    />
                 <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-around'}}>
                     <TouchableOpacity 
                         style={[styles.applyBtn, { padding: rs(10), borderRadius: rs(8), width: '40%', marginHorizontal: 'auto' }]}
@@ -303,7 +310,9 @@ const updatePallet = async (palletId) => {
                                         value={verifyPalletText}
                                         onChangeText={(text) => {
                                             setVerifyPalletText(text);
-                                            if (parseInt(text) === palletId) {
+                                        }}
+                                        onSubmitEditing={() => {
+                                            if (parseInt(verifyPalletText) === palletId) {
                                                 setVerifyPallet(false);
                                                 setShowQty(true);
                                             } else {
@@ -312,7 +321,7 @@ const updatePallet = async (palletId) => {
                                                 setVerifyPalletText('');
                                                 setTimeout(() => verifyPalletRef.current?.focus(), 100);
                                             }
-                                        }}    
+                                        }}   
                                     />
                                     {/* <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-around'}}>
                                         <TouchableOpacity style={[styles.applyBtn, { padding: rs(10), borderRadius: rs(8) }]}>
@@ -343,7 +352,7 @@ const updatePallet = async (palletId) => {
                                                     ref={palletInputRef}
                                                     style={[styles.qtyInput, { color: '#fff', textAlign: 'center', padding: rs(10), width: wp(45), maxWidth: rs(200), fontSize: rs(16) }]} placeholder={binQty.toString()}
                                                     placeholderTextColor={'#919191'}
-                                                    // showSoftInputOnFocus={false} 
+                                                    showSoftInputOnFocus={false} 
                                                     keyboardType='numeric'
                                                     value={binQty.toString()}
                                                     onChangeText={(val) => {

@@ -174,18 +174,21 @@ const ScanItem = ({}) => {
                         value={verifyWHText}
                         onChangeText={(text) => {
                         // console.log("Verify WH Text: ", text);
-                        setVerifyWHText(text);
-                        if (text === itemObj[0].primaryBin) {
+                        setVerifyWHText(text.toUpperCase());
+                    }}
+                        onSubmitEditing={() => {
+                            if (verifyWHText.toUpperCase() === itemObj[0].primaryBin) {
                             // console.log('WH location verified');
                             setVerifyWHLoc(false);
-                        } else {
-                            setErrorMessage("Location doesn't match");
-                            setErrorVisible(true);
-                            setTimeout(() => {
-                                scanWhRef.current?.focus();
-                            }, 100)
-                        }
-                    }}/>
+                            } else {
+                                setErrorMessage("Location doesn't match");
+                                setErrorVisible(true);
+                                setTimeout(() => {
+                                    scanWhRef.current?.focus();
+                                }, 100)
+                            }
+                        }}
+                    />
                     <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
                         <TouchableOpacity onPress={() => {
                             setVerifyWHLoc(false);
@@ -216,19 +219,21 @@ const ScanItem = ({}) => {
                         value={verifyCCText}
                         onChangeText={(text) => {
                         // console.log("Verify WH Text: ", text);
-                        setVerifyCCText(text);
-                        if (text === itemObj[0].secondaryBin) {
+                        setVerifyCCText(text.toUpperCase());
+                    }}
+                        onSubmitEditing={() => {
+                            if (verifyCCText.toUpperCase() === itemObj[0].secondaryBin) {
                             // console.log('WH location verified');
                             setVerifyCCLoc(false);
-                            setVerifyCCText(text);
-                        } else {
-                            setErrorMessage("Location doesn't match");
-                            setErrorVisible(true);
-                            setTimeout(() => {
-                                scanCcRef.current?.focus();
-                            }, 100)
-                        }
-                    }}/>
+                            } else {
+                                setErrorMessage("Location doesn't match");
+                                setErrorVisible(true);
+                                setTimeout(() => {
+                                    scanCcRef.current?.focus();
+                                }, 100)
+                            }
+                        }}
+                    />
                     <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
                         <TouchableOpacity onPress={() => {
                             setVerifyCCLoc(false);
