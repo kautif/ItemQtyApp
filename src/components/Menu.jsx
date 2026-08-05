@@ -8,6 +8,7 @@ import { resetUser } from '../../redux/itemSlice';
 const ghraDark = require('../../assets/images/ghra_dark.jpg');
 const cube = require('../../assets/images/cube.png');
 const logout = require('../../assets/images/logout_door.png');
+const transfer = require('../../assets/images/transfer.png');
 
 const Menu = ({ navigation }) => {
     const dispatch = useDispatch();
@@ -29,6 +30,19 @@ const Menu = ({ navigation }) => {
                     </TouchableOpacity>
                     <Text style={[styles.label, { fontSize: rs(14), marginTop: rs(8) }]}>Item Details</Text>
                 </View>
+                {/* <View style={[styles.menuItem, { maxWidth: wp(60) }]}>
+                    <TouchableOpacity
+                        style={[
+                            styles.iconButton,
+                            { padding: rs(20), borderRadius: rs(20) },
+                        ]}
+                        onPress={() => {
+                            router.push('/bins');
+                        }}>
+                        <Image source={transfer} style={{ width: rs(32), height: rs(32) }} />
+                    </TouchableOpacity>
+                    <Text style={[styles.label, { fontSize: rs(14), marginTop: rs(8) }]}>Bin to Bin</Text>
+                </View> */}
                 <View style={[styles.menuItem, { maxWidth: wp(60) }]}>
                     <TouchableOpacity
                         style={[

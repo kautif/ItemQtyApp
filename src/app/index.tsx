@@ -7,6 +7,7 @@ import Menu from '../components/Menu';
 import Scan from '../components/Scan';
 import ScanItem from '../components/ScanItem';
 import Storage from '../components/Storage';
+import Bins from '../components/Bins';
 
 const Stack = createNativeStackNavigator();
 
@@ -18,6 +19,7 @@ export default function HomeScreen() {
         <Stack.Screen name="Menu" component={Menu} options={{headerShown: false, orientation: 'portrait_up'}}></Stack.Screen>
         <Stack.Screen name="Scan Item" component={ScanItem} options={{headerShown: false, orientation: 'portrait_up'}}></Stack.Screen>
         <Stack.Screen name="Storage" component={Storage} options={{headerShown: false, orientation: 'portrait_up'}}></Stack.Screen>
+        <Stack.Screen name="Bins" component={Bins} options={{headerShown: false, orientation: 'portrait_up'}}></Stack.Screen>
       </Stack.Navigator>
     </NavigationIndependentTree>
   );

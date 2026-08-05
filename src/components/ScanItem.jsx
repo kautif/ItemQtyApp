@@ -125,9 +125,13 @@ const ScanItem = ({}) => {
 
                     setConfirmMessage("Quantity updated");
                     setConfirmVisible(true);
+                } else {
+                    setErrorMessage(response.data.reason + `\n item: ${itemObj[0].id} \n bin: ${bin}, \n counted: ${qty}, \n variance: ${variance} `);
+                    setErrorVisible(true);
                 }
             }).catch(err => {
                 console.error("ERROR: ", err.response.reason);
+
             })
     }
 
@@ -177,11 +181,11 @@ const ScanItem = ({}) => {
                         setVerifyWHText(text.toUpperCase());
                     }}
                         onSubmitEditing={() => {
-                            if (verifyWHText.toUpperCase() === itemObj[0].primaryBin) {
+                            if (verifyWHText.toUpperCase() === itemObj[0].primaryBin.toUpperCase()) {
                             // console.log('WH location verified');
                             setVerifyWHLoc(false);
                             } else {
-                                setErrorMessage("Location doesn't match");
+                                setErrorMessage(`Location doesn't match \n expected: ${itemObj[0].primaryBin.toUpperCase()} \n scanned: ${verifyWHText.toUpperCase()}`);
                                 setErrorVisible(true);
                                 setTimeout(() => {
                                     scanWhRef.current?.focus();
@@ -207,13 +211,13 @@ const ScanItem = ({}) => {
             visible={verifyCCLoc}
             onRequestClose={() => {
             }}>
-                <View style={{backgroundColor: '#000000bb', width: '90%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(200), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
+                <View style={{backgroundColor: '#00000haha0bb', width: '90%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(200), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
                     <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>Verify Location</Text>
                     <TextInput
                         ref={scanCcRef} 
                         style={{color: 'white', borderColor: "#1D9E75", borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(10), fontSize: rs(16)}} 
                         placeholder='Scan Location' 
-                        placeholderTextColor={'#919191'} 
+                        placeholderTextColor={'#919191'}
                         showSoftInputOnFocus={false} 
                         autoFocus={true} 
                         value={verifyCCText}
@@ -222,11 +226,11 @@ const ScanItem = ({}) => {
                         setVerifyCCText(text.toUpperCase());
                     }}
                         onSubmitEditing={() => {
-                            if (verifyCCText.toUpperCase() === itemObj[0].secondaryBin) {
+                            if (verifyCCText.toUpperCase() === itemObj[0].secondaryBin.toUpperCase()) {
                             // console.log('WH location verified');
                             setVerifyCCLoc(false);
                             } else {
-                                setErrorMessage("Location doesn't match");
+                                setErrorMessage(`Location doesn't match \n expected: ${itemObj[0].secondaryBin.toUpperCase()} \n scanned: ${verifyCCText.toUpperCase()}`);
                                 setErrorVisible(true);
                                 setTimeout(() => {
                                     scanCcRef.current?.focus();

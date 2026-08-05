@@ -20,6 +20,7 @@ export default function TabLayout() {
           <Stack.Screen name='scan_item' options={{ headerShown: false }} />
           <Stack.Screen name='storage' options={{ headerShown: false }} />
           <Stack.Screen name='menu' options={{ headerShown: false }} />
+          <Stack.Screen name='bins' options={{ headerShown: false }} />
         </Stack>
       </SafeAreaProvider>
     </Provider>
