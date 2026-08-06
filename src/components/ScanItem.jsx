@@ -180,8 +180,8 @@ const ScanItem = ({}) => {
                         // console.log("Verify WH Text: ", text);
                         setVerifyWHText(text.toUpperCase());
                     }}
-                        onSubmitEditing={() => {
-                            if (verifyWHText.toUpperCase() === itemObj[0].primaryBin.toUpperCase()) {
+                        onSubmitEditing={(e) => {
+                            if (e.nativeEvent.text.toUpperCase() === itemObj[0].primaryBin.toUpperCase()) {
                             // console.log('WH location verified');
                             setVerifyWHLoc(false);
                             } else {
@@ -211,7 +211,7 @@ const ScanItem = ({}) => {
             visible={verifyCCLoc}
             onRequestClose={() => {
             }}>
-                <View style={{backgroundColor: '#00000haha0bb', width: '90%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(200), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
+                <View style={{backgroundColor: '#000000bb', width: '90%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(200), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
                     <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>Verify Location</Text>
                     <TextInput
                         ref={scanCcRef} 
@@ -225,8 +225,8 @@ const ScanItem = ({}) => {
                         // console.log("Verify WH Text: ", text);
                         setVerifyCCText(text.toUpperCase());
                     }}
-                        onSubmitEditing={() => {
-                            if (verifyCCText.toUpperCase() === itemObj[0].secondaryBin.toUpperCase()) {
+                        onSubmitEditing={(e) => {
+                            if (e.nativeEvent.text.toUpperCase() === itemObj[0].secondaryBin.toUpperCase()) {
                             // console.log('WH location verified');
                             setVerifyCCLoc(false);
                             } else {
@@ -391,20 +391,20 @@ const ScanItem = ({}) => {
                                                             }}><Text style={[styles.qtyBtnText, { fontSize: rs(30) }]}>+</Text></TouchableOpacity>
                                                         </View>
                                                         <View>
-                                                        {Number.isFinite(whQty) && <Text style={{color: '#fff', textAlign: 'center', marginTop: 10, fontSize: rs(20)}}>
-                                                        {whQty < defaultPrimaryQty
-                                                            ? `Deducting ${numberCommaFormat(-1 * (whQty - defaultPrimaryQty))}`
-                                                            : whQty > defaultPrimaryQty
-                                                                ? `Adding: ${numberCommaFormat(parseInt(whQty) - defaultPrimaryQty)}`
-                                                                : ""}</Text>}
-                                                         {/* {Number.isFinite(whQty) > 0 && <Text style={{color: '#fff', textAlign: 'center', marginTop: 10, fontSize: rs(20)}}>New Total: {whQty}</Text>} */}
-                                                        <TouchableOpacity style={{...styles.applyBtn, marginTop: 20, width: '50%', marginHorizontal: 'auto', padding: rs(10), borderRadius: rs(8)}}
-                                                        onPress={() => {
-                                                            updateBinQty(itemObj[0].primaryBin, parseInt(whQty), parseInt(whQty) - defaultPrimaryQty, "primary");
-                                                        }}>
-                                                            <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Apply</Text>
-                                                        </TouchableOpacity>
-                                                    </View>
+                                                            {Number.isFinite(whQty) && <Text style={{color: '#fff', textAlign: 'center', marginTop: 10, fontSize: rs(20)}}>
+                                                            {whQty < defaultPrimaryQty
+                                                                ? `Deducting ${numberCommaFormat(-1 * (whQty - defaultPrimaryQty))}`
+                                                                : whQty > defaultPrimaryQty
+                                                                    ? `Adding: ${numberCommaFormat(parseInt(whQty) - defaultPrimaryQty)}`
+                                                                    : ""}</Text>}
+                                                            {/* {Number.isFinite(whQty) > 0 && <Text style={{color: '#fff', textAlign: 'center', marginTop: 10, fontSize: rs(20)}}>New Total: {whQty}</Text>} */}
+                                                            <TouchableOpacity style={{...styles.applyBtn, marginTop: 20, width: '50%', marginHorizontal: 'auto', padding: rs(10), borderRadius: rs(8)}}
+                                                            onPress={() => {
+                                                                updateBinQty(itemObj[0].primaryBin, parseInt(whQty), parseInt(whQty) - defaultPrimaryQty, "primary");
+                                                            }}>
+                                                                <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Apply</Text>
+                                                            </TouchableOpacity>
+                                                        </View>
                                                     </View>
                                                 </View>
                                         </View>}
