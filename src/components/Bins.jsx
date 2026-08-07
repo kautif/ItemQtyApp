@@ -199,10 +199,10 @@ const Bins = ({}) => {
                                     <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
                                         <TouchableOpacity style={[styles.qtyBtn, { width: rs(50), height: rs(50) }]} onPress={() => {
                                             setBinInput(prevQty => {
-                                                if (prevQty < 0) {
+                                                if (prevQty <= 1) {
                                                     return 1;
                                                 } else {
-                                                    return prevQty;
+                                                    return prevQty - 1;
                                                 }
                                             })
                                         }}><Text style={[styles.qtyBtnText, { fontSize: rs(30) }]}>-</Text></TouchableOpacity>
@@ -255,8 +255,19 @@ const Bins = ({}) => {
                             console.log("destinations: ", availableBins);
                             if (possibleBins.includes(dest) && dest !== bin) {
                                 transferToBin();
-                            } else {
+                            } 
+                            
+                            if (!possibleBins.includes(dest) || dest === bin) {
                                 setErrorMessage('Not a Valid Bin');
+                                setDest('');
+                                setTimeout(() => {
+                                    destInputRef.current?.focus();
+                                }, 100)
+                                setErrorVisible(true);
+                            }
+
+                            if (binQty <= 0) {
+                                setErrorMessage("Bin doesn't have quantity available");
                                 setDest('');
                                 setTimeout(() => {
                                     destInputRef.current?.focus();
