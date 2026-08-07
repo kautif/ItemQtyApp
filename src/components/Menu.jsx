@@ -30,7 +30,7 @@ const Menu = ({ navigation }) => {
                     </TouchableOpacity>
                     <Text style={[styles.label, { fontSize: rs(14), marginTop: rs(8) }]}>Item Details</Text>
                 </View>
-                {/* <View style={[styles.menuItem, { maxWidth: wp(60) }]}>
+                <View style={[styles.menuItem, { maxWidth: wp(60) }]}>
                     <TouchableOpacity
                         style={[
                             styles.iconButton,
@@ -42,7 +42,7 @@ const Menu = ({ navigation }) => {
                         <Image source={transfer} style={{ width: rs(32), height: rs(32) }} />
                     </TouchableOpacity>
                     <Text style={[styles.label, { fontSize: rs(14), marginTop: rs(8) }]}>Bin to Bin</Text>
-                </View> */}
+                </View>
                 <View style={[styles.menuItem, { maxWidth: wp(60) }]}>
                     <TouchableOpacity
                         style={[
