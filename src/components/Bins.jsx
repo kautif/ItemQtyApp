@@ -14,7 +14,7 @@ const Bins = ({}) => {
     const [availableBins, setAvailableBins] = useState([]);
     const [possibleBins, setPossibleBins] = useState([]);
     const [desc, setDesc] = useState("");
-    const [binQty, setBinQty] = useState(0);
+    const [binQty, setBinQty] = useState();
     const [binInput, setBinInput] = useState(1);
     const [sku, setSKU] = useState("");
     const [itemId, setItemId] = useState(0);
@@ -98,6 +98,21 @@ const Bins = ({}) => {
     }, [upc])
 
     useEffect(() => {
+        if (binQty === 0) {
+            setBin('');
+            setSKU('');
+            setUPC('');
+            setDesc('');
+            setBinQty();
+            setItemId('');
+            setAvailableBins([]);
+            setPossibleBins([]);
+            setErrorMessage(` ${bin} has 0 quantity of this item`);
+            setErrorVisible(true);
+        }
+    }, [binQty])
+
+    useEffect(() => {
         console.log("available bins: ", availableBins);
         console.log("desc: ", desc);
         console.log("binQty: ", binQty);
@@ -142,7 +157,8 @@ const Bins = ({}) => {
                             setDesc('');
                             setDest('');
                             setAvailableBins([]);
-                            setBinQty(0);
+                            setPossibleBins([]);
+                            setBinQty();
                             setBinInput(1);
                             setItemId(0);
                             setTimeout(() => {
@@ -259,15 +275,6 @@ const Bins = ({}) => {
                             
                             if (!possibleBins.includes(dest) || dest === bin) {
                                 setErrorMessage('Not a Valid Bin');
-                                setDest('');
-                                setTimeout(() => {
-                                    destInputRef.current?.focus();
-                                }, 100)
-                                setErrorVisible(true);
-                            }
-
-                            if (binQty <= 0) {
-                                setErrorMessage("Bin doesn't have quantity available");
                                 setDest('');
                                 setTimeout(() => {
                                     destInputRef.current?.focus();
