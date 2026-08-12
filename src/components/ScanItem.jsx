@@ -8,6 +8,7 @@ import useResponsive from '../hooks/useResponsive';
 
 const ghraDark = require('../../assets/images/ghra_dark.jpg');
 const pencil = require('../../assets/images/pencil.png');
+const map = require('../../assets/images/map-icon.png');
 
 const ScanItem = ({}) => {
     const dispatch = useDispatch();
@@ -15,6 +16,8 @@ const ScanItem = ({}) => {
     const ccQtyInputRef = useRef(null);
     const scanWhRef = useRef(null);
     const scanCcRef = useRef(null);
+    const primaryLocRef = useRef(null);
+    const secondaryLocRef = useRef(null);
 
     const { rs, wp, hp } = useResponsive();
 
@@ -23,6 +26,8 @@ const ScanItem = ({}) => {
     const [palletCount, setPalletCount] = useState(0);
     const [palletQty, setPalletQty] = useState(0);
     const [binNum, setBinNum] = useState(0);
+    const [whLoc, setWhLoc] = useState('');
+    const [ccLoc, setCCLoc] = useState('');
     const [defaultPrimaryQty, setDefaultPrimaryQty] = useState(0);
     const [defaultSecondaryQty, setDefaultSecondaryQty] = useState(0);
     const [whQty, setWhQty] = useState(0);
@@ -37,11 +42,19 @@ const ScanItem = ({}) => {
     const [editWHQty, setEditWHQty] = useState(false);
     const [editCCQty, setEditCCQty] = useState(false);
 
+
     const [verifyWHLoc, setVerifyWHLoc] = useState(false);
     const [verifyWHText, setVerifyWHText] = useState("");
 
     const [verifyCCLoc, setVerifyCCLoc] = useState(false);
     const [verifyCCText, setVerifyCCText] = useState("");
+
+    const [editPrimaryLoc, setEditPrimaryLoc] = useState(false);
+    const [primaryLocText, setPrimaryLocText] = useState("");
+
+    const [editSecondaryLoc, setEditSecondaryLoc] = useState(false);
+    const [secondaryLocText, setSecondaryLocText] = useState("");
+
 
     // const pallets = useSelector(state => state.items.pallets);
     const items = useSelector(state => state.items);
@@ -76,6 +89,8 @@ const ScanItem = ({}) => {
                 console.log("RESPONSE: ", response.data);
                 if (response.data.success) {
                     setItemObj(response.data.itemData);
+                    setWhLoc(response.data.itemData[0].primaryBin);
+                    setCCLoc(response.data.itemData[0].secondaryBin);
                     setDefaultPrimaryQty(response.data.itemData[0].primaryBinQuantity);
                     setDefaultSecondaryQty(response.data.itemData[0].secondaryBinQuantity);
                     dispatch(setItemId(response.data.itemData[0].id));
@@ -99,7 +114,7 @@ const ScanItem = ({}) => {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
     }
 
-    const updateBinQty= async (bin, qty, variance, locationType) => {
+    const updateBinQty = async (bin, qty, variance, locationType) => {
         console.log("itemId: ", itemObj[0].id);
         console.log("employeeId: ", employeeId);
         console.log("qty: ", qty);
@@ -133,6 +148,32 @@ const ScanItem = ({}) => {
                 console.error("ERROR: ", err.response.reason);
 
             })
+    }
+
+    const updateLocation = async (locationType, fromBin, toBin) => {
+        return axios.post('http://192.168.2.165:81/api/Item/binChange', {
+            token: 'Yh2k7QSu4l8CZg5p6X3Pna9L0Miy4D3Bvt0JVr87UcOj69Kqw5R2Nmf4FWs03Hdx',
+            employeeId: employeeId,
+            binLocationType: locationType,
+            itemID: itemObj[0].id,
+            fromBinNumber: fromBin,
+            toBinNumber: toBin
+        }).then(response => {
+            console.log("bin change: ", response.data);
+            if (response.data.success) {
+                if (locationType === 1) {
+                    setConfirmMessage(`${fromBin} updated to ${toBin}`);
+                    setWhLoc(toBin);
+                    setConfirmVisible(true);
+                }
+
+                if (locationType === 2) {
+                    setConfirmMessage(`${fromBin} updated to ${toBin}`);
+                    setCCLoc(toBin);
+                    setConfirmVisible(true);
+                }
+            }
+        })
     }
 
     function calcBin(primary, secondary, fulfilled) {
@@ -184,8 +225,8 @@ const ScanItem = ({}) => {
                             if (e.nativeEvent.text.toUpperCase() === itemObj[0].primaryBin.toUpperCase()) {
                             // console.log('WH location verified');
                             setVerifyWHLoc(false);
-                            } else {
-                                setErrorMessage(`Location doesn't match \n expected: ${itemObj[0].primaryBin.toUpperCase()} \n scanned: ${verifyWHText.toUpperCase()}`);
+                            } else if (verifyWHLoc) {
+                                setErrorMessage(`Location doesn't match \n expected: ${whLoc.toUpperCase()} \n scanned: ${e.nativeEvent.text.toUpperCase()}`);
                                 setErrorVisible(true);
                                 setTimeout(() => {
                                     scanWhRef.current?.focus();
@@ -197,6 +238,8 @@ const ScanItem = ({}) => {
                         <TouchableOpacity onPress={() => {
                             setVerifyWHLoc(false);
                             setEditWHQty(false);
+                            setEditPrimaryLoc(false);
+                            setEditSecondaryLoc(false);
                             setVerifyCCText('');
                             setVerifyWHText('');
                         }}>
@@ -226,22 +269,28 @@ const ScanItem = ({}) => {
                         setVerifyCCText(text.toUpperCase());
                     }}
                         onSubmitEditing={(e) => {
-                            if (e.nativeEvent.text.toUpperCase() === itemObj[0].secondaryBin.toUpperCase()) {
+                            if (e.nativeEvent.text.toUpperCase() === ccLoc.toUpperCase()) {
                             // console.log('WH location verified');
                             setVerifyCCLoc(false);
-                            } else {
-                                setErrorMessage(`Location doesn't match \n expected: ${itemObj[0].secondaryBin.toUpperCase()} \n scanned: ${verifyCCText.toUpperCase()}`);
+                            } else if (verifyCCLoc) {
+                                setErrorMessage(`Location doesn't match \n expected: ${ccLoc.toUpperCase()} \n scanned: ${e.nativeEvent.text.toUpperCase()}`);
                                 setErrorVisible(true);
                                 setTimeout(() => {
                                     scanCcRef.current?.focus();
                                 }, 100)
-                            }
+                            } 
                         }}
                     />
                     <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
                         <TouchableOpacity onPress={() => {
+                            setVerifyWHLoc(false);
                             setVerifyCCLoc(false);
+                            setEditWHQty(false);
                             setEditCCQty(false);
+                            setEditPrimaryLoc(false);
+                            setEditSecondaryLoc(false);
+                            setVerifyCCText('');
+                            setVerifyWHText('');
                         }}>
                             <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(20), fontWeight: 'bold'}}>Cancel</Text>
                         </TouchableOpacity>
@@ -263,6 +312,8 @@ const ScanItem = ({}) => {
                         <TouchableOpacity onPress={() => {
                             setVerifyWHText('');
                             setVerifyCCText('');
+                            setPrimaryLocText('');
+                            setSecondaryLocText('');
                             setErrorVisible(false);
                         }}>
                             <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(20), fontWeight: 'bold'}}>Close</Text>
@@ -285,12 +336,18 @@ const ScanItem = ({}) => {
                     <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{confirmMessage}</Text>
                     <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{ccQty < defaultSecondaryQty ? `Deducted ${numberCommaFormat(-1 * (ccQty - defaultSecondaryQty))}`: ccQty > defaultSecondaryQty ? `Added ${numberCommaFormat(ccQty - defaultSecondaryQty)}` : ""}</Text>
                     </>}
+                    {editPrimaryLoc && <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{confirmMessage}</Text>}
+                    {editSecondaryLoc && <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{confirmMessage}</Text>}
                     <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
                         <TouchableOpacity onPress={() => {
                             setEditWHQty(false);
                             setEditCCQty(false);
+                            setEditPrimaryLoc(false);
+                            setEditSecondaryLoc(false);
                             setVerifyCCText('');
                             setVerifyWHText('');
+                            setPrimaryLocText('');
+                            setSecondaryLocText('');
                             setConfirmVisible(false);
                         }}>
                             <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(20), fontWeight: 'bold'}}>Close</Text>
@@ -340,13 +397,23 @@ const ScanItem = ({}) => {
                                     </View>
                                     }
                                 </View>
-                                <View style={{...styles.itemOverview, marginTop: 10, paddingBottom: 0, borderTopEndRadius: 10, borderTopLeftRadius: 10}}>
-                                    <View style={{...styles.itemDetailFlex, flexDirection: 'column'}}>
-                                        <Text style={[styles.itemDetailsHead, { marginBottom: 5, marginLeft: 20, fontSize: rs(13) }]}>Warehouse Location</Text>
-                                        <Text style={[styles.itemQty, { alignSelf: 'flex-start', fontSize: rs(15), marginTop: 0, marginLeft: 20 }]}>{itemObj[0].primaryBin}</Text>
+                                <View style={{...styles.itemOverview, marginTop: 10, paddingTop: rs(10), paddingBottom: 0, borderTopEndRadius: 10, borderTopLeftRadius: 10}}>
+                                    <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+                                        <View style={{...styles.itemDetailFlex, flexDirection: 'column'}}>
+                                            <Text style={[styles.itemDetailsHead, { marginBottom: 5, marginLeft: 20, fontSize: rs(13) }]}>Warehouse Location</Text>
+                                            <Text style={[styles.itemQty, { alignSelf: 'flex-start', fontSize: rs(15), marginTop: 0, marginLeft: 20 }]}>{whLoc}</Text>
+                                        </View>
+                                        <TouchableOpacity onPress={() => {
+                                            setEditPrimaryLoc(true);
+                                            setVerifyWHLoc(true);
+                                            setVerifyWHText('');
+                                            setVerifyCCText('');
+                                        }}>
+                                            <Image style={[styles.pencilIcon, { width: rs(32), height: rs(32), marginRight: rs(15), marginTop: rs(15) }]} source={map} />
+                                        </TouchableOpacity>
                                     </View>
                                     <View>
-                                        {editWHQty === false && <View style={styles.itemDetailFlex}>
+                                        {(editWHQty === false && editPrimaryLoc === false) && <View style={{...styles.itemDetailFlex, marginTop: rs(10)}}>
                                             <Text style={[styles.itemDetailsHead, { fontSize: rs(13) }]}>Quantity</Text>
                                                 <View style={styles.textGroup}>
                                                     <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{numberCommaFormat(defaultPrimaryQty)}</Text>
@@ -361,6 +428,39 @@ const ScanItem = ({}) => {
                                                     </TouchableOpacity>
                                                 </View>
                                         </View>}
+                                        {editPrimaryLoc === true && <View style={styles.itemDetailFlex}>
+                                            <TextInput 
+                                                ref={primaryLocRef}
+                                                autoFocus={true}
+                                                style={{color: '#fff', borderColor: "#1D9E75", borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginLeft: rs(15), marginTop: rs(10), marginBottom: rs(15), fontSize: rs(16), width: 200}}
+                                                placeholder={"Enter new location"}
+                                                placeholderTextColor={'#979797'}
+                                                value={primaryLocText}
+                                                onChangeText={(text) => {
+                                                    setPrimaryLocText(text.toUpperCase());
+                                                    if (text.toUpperCase() === whLoc) {
+                                                        setErrorMessage('New location scanned is same as the current location');
+                                                        setTimeout(() => {
+                                                            primaryLocRef.current?.focus();
+                                                        }, 100)
+                                                        setErrorVisible(true);
+                                                    }
+                                                }}
+                                            />
+                                            <TouchableOpacity style={{...styles.applyBtn, width: '25%', marginHorizontal: 'auto', marginTop: rs(10), marginBottom: rs(15), padding: rs(10), borderRadius: rs(8)}}
+                                                onPress={() => {
+                                                    if (primaryLocText === '' || primaryLocText.length === 0) {
+                                                        setErrorMessage("Must enter a location to update");
+                                                        setErrorVisible(true);
+                                                    } else {
+                                                        updateLocation(1, whLoc, primaryLocText);
+                                                        console.log("update location: ", 1, itemObj[0].primaryBin, primaryLocText);
+                                                    }
+                                                }}>
+                                                <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Update</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                        }
                                         {editWHQty === true && <View style={styles.itemDetailFlex}>
                                             {/* <Text style={styles.itemDetailsHead}>Quantity</Text> */}
                                                 <View style={{...styles.textGroup, width: '100%', marginVertical: 20}}>
@@ -411,12 +511,56 @@ const ScanItem = ({}) => {
                                     </View>
                                 </View>
                                 {itemObj[0].secondaryBin.length > 0 && <View style={{...styles.itemOverview, marginTop: 10, paddingBottom: 0, borderTopEndRadius: 10, borderTopLeftRadius: 10}}>
-                                    <View style={{...styles.itemDetailFlex, flexDirection: 'column'}}>
-                                        <Text style={[styles.itemDetailsHead, { marginBottom: 5, marginLeft: 20, fontSize: rs(13) }]}>Cash/Carry Location</Text>
-                                        <Text style={[styles.itemQty, { alignSelf: 'flex-start', fontSize: rs(15), marginTop: 0, marginLeft: 20 }]}>{itemObj[0].secondaryBin}</Text>
+                                    <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+                                        <View style={{...styles.itemDetailFlex, flexDirection: 'column'}}>
+                                            <Text style={[styles.itemDetailsHead, { marginBottom: 5, marginLeft: 20, fontSize: rs(13) }]}>Cash/Carry Location</Text>
+                                            <Text style={[styles.itemQty, { alignSelf: 'flex-start', fontSize: rs(15), marginTop: 0, marginLeft: 20 }]}>{ccLoc}</Text>
+                                        </View>
+                                        <TouchableOpacity onPress={() => {
+                                            setEditSecondaryLoc(true);
+                                            setVerifyCCLoc(true);
+                                            setVerifyWHText('');
+                                            setVerifyCCText('');
+                                        }}>
+                                            <Image style={[styles.pencilIcon, { width: rs(32), height: rs(32), marginRight: rs(15), marginTop: rs(15) }]} source={map} />
+                                        </TouchableOpacity>
                                     </View>
                                     <View>
-                                        {editCCQty === false && <View style={styles.itemDetailFlex}>
+                                        {editSecondaryLoc === true && <View style={styles.itemDetailFlex}>
+                                            <TextInput 
+                                                ref={secondaryLocRef}
+                                                autoFocus={true}
+                                                style={{color: '#fff', borderColor: "#1D9E75", borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginLeft: rs(15), marginTop: rs(10), marginBottom: rs(15), fontSize: rs(16), width: 200}}
+                                                placeholder={"Enter new location"}
+                                                placeholderTextColor={'#979797'}
+                                                value={secondaryLocText}
+                                                onChangeText={(text) => {
+                                                    setSecondaryLocText(text.toUpperCase());
+                                                    if (text.toUpperCase() === ccLoc) {
+                                                        setErrorMessage('New location scanned is same as the current location');
+                                                        setTimeout(() => {
+                                                            secondaryLocRef.current?.focus();
+                                                        }, 100)
+                                                        setErrorVisible(true);
+                                                    }
+                                                }}
+                                            />
+                                            <TouchableOpacity style={{...styles.applyBtn, width: '25%', marginHorizontal: 'auto', marginTop: rs(10), marginBottom: rs(15), padding: rs(10), borderRadius: rs(8)}}
+                                                onPress={() => {
+                                                    if (secondaryLocText === '' || secondaryLocText.length === 0) {
+                                                        setErrorMessage("Must enter a location to update");
+                                                        setErrorVisible(true);
+                                                    } else {
+                                                        updateLocation(2, ccLoc, secondaryLocText);
+                                                        console.log("update location: ", 1, ccLoc, secondaryLocText);
+                                                    }
+                                                    console.log("update location: ", 2, itemObj[0].secondaryBin, secondaryLocText);
+                                                }}>
+                                                <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Update</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                        }
+                                        {(editCCQty === false && editSecondaryLoc === false) && <View style={styles.itemDetailFlex}>
                                             <Text style={[styles.itemDetailsHead, { fontSize: rs(13) }]}>Quantity</Text>
                                                 <View style={styles.textGroup}>
                                                     <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{numberCommaFormat(defaultSecondaryQty)}</Text>
