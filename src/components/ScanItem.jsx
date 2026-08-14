@@ -33,11 +33,18 @@ const ScanItem = ({}) => {
     const [whQty, setWhQty] = useState(0);
     const [ccQty, setCcQty] = useState(0);
 
+    const [enterSubmitted, setEnterSubmitted] = useState(false);
+
     const [errorVisible, setErrorVisible] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
 
     const [confirmVisible, setConfirmVisible] = useState(false);
     const [confirmMessage, setConfirmMessage] = useState('');
+
+    const [createLocVisible, setCreateLocVisible] = useState(false);
+    const [createWh, setCreateWh] = useState(false);
+    const [createCc, setCreateCc] = useState(false);
+    const [newLocText, setNewLocText] = useState("");
 
     const [editWHQty, setEditWHQty] = useState(false);
     const [editCCQty, setEditCCQty] = useState(false);
@@ -64,23 +71,49 @@ const ScanItem = ({}) => {
 
     useEffect(() => {
         if (item.length > 0) {
+            // 8/14/26: don't comment this out or its function. 
+                // it's no longer needed but breaks the application if removed for some reason at the item scanning screen
             getItem();
         }
     }, [item])
 
     useEffect(() => {
-        // console.log("USE EFFECT items: ", items);
-    }, [items])
-
-    useEffect(() => {
-        console.log("itemId: ", itemId);
-    }, [itemId])
-
-    useEffect(() => {
-        // console.log('item data: ', itemObj);
-    }, [itemObj])
+        if (enterSubmitted && item.length > 0) {
+            fillItem();
+        }
+    }, [enterSubmitted, item])
 
     const getItem = async () => {
+        
+            return axios.post('http://192.168.2.165:81/api/Item/getItem', {
+                token: 'Yh2k7QSu4l8CZg5p6X3Pna9L0Miy4D3Bvt0JVr87UcOj69Kqw5R2Nmf4FWs03Hdx',
+                upc: item
+            }).then(response => {
+                console.log("RESPONSE: ", response.data);
+                if (response.data.success) {
+                    // setItemObj(response.data.itemData);
+                    // setWhLoc(response.data.itemData[0].primaryBin);
+                    // setCCLoc(response.data.itemData[0].secondaryBin);
+                    // setDefaultPrimaryQty(response.data.itemData[0].primaryBinQuantity);
+                    // setDefaultSecondaryQty(response.data.itemData[0].secondaryBinQuantity);
+                    // dispatch(setItemId(response.data.itemData[0].id));
+                    // dispatch(setItems(response.data.itemData));
+                    // dispatch(setPallets(response.data.itemData[0].palletData));
+                    // setWhQty(response.data.itemData[0].primaryBinQuantity);
+                    // setCcQty(response.data.itemData[0].secondaryBinQuantity);
+                    // calcPalletItems(response.data.itemData[0].palletData);
+                } else {
+                    // setErrorMessage(response.data.reason);
+                    // setErrorVisible(true);
+                    // setItem('');
+                }
+            }).catch(err => {
+                // console.log("failed response: ", err);
+            })
+            // console.log("getItem response: ", response.data);
+    }
+
+    const fillItem = async () => {
         
             return axios.post('http://192.168.2.165:81/api/Item/getItem', {
                 token: 'Yh2k7QSu4l8CZg5p6X3Pna9L0Miy4D3Bvt0JVr87UcOj69Kqw5R2Nmf4FWs03Hdx',
@@ -104,6 +137,7 @@ const ScanItem = ({}) => {
                     setErrorVisible(true);
                     setItem('');
                 }
+                setEnterSubmitted(false);
             }).catch(err => {
                 // console.log("failed response: ", err);
             })
@@ -161,17 +195,33 @@ const ScanItem = ({}) => {
         }).then(response => {
             console.log("bin change: ", response.data);
             if (response.data.success) {
-                if (locationType === 1) {
+                if (locationType === 1 && fromBin.length > 0) {
                     setConfirmMessage(`${fromBin} updated to ${toBin}`);
                     setWhLoc(toBin);
                     setConfirmVisible(true);
                 }
 
-                if (locationType === 2) {
+                if (locationType === 2 && fromBin.length > 0) {
                     setConfirmMessage(`${fromBin} updated to ${toBin}`);
                     setCCLoc(toBin);
                     setConfirmVisible(true);
                 }
+
+                if (locationType === 1 && fromBin.length === 0) {
+                    setConfirmMessage(`${toBin} added for Warehouse location`);
+                    setWhLoc(toBin);
+                    setCreateLocVisible(false);
+                    setConfirmVisible(true);
+                }
+
+                if (locationType === 2 && fromBin.length === 0) {
+                    setConfirmMessage(`${toBin} added for Cash/Carry Location`);
+                    setCCLoc(toBin);
+                    setCreateLocVisible(false);
+                    setConfirmVisible(true);
+                }
+            } else {
+                console.log("updated FAILED: ", response.data.reason);
             }
         })
     }
@@ -192,10 +242,6 @@ const ScanItem = ({}) => {
         }
         setPalletQty(palletAgg);
     }
-
-    useState(() => {
-        
-    }, [errorVisible])
 
     return (
         <>
@@ -222,16 +268,18 @@ const ScanItem = ({}) => {
                         setVerifyWHText(text.toUpperCase());
                     }}
                         onSubmitEditing={(e) => {
-                            if (e.nativeEvent.text.toUpperCase() === itemObj[0].primaryBin.toUpperCase()) {
+                            if (e.nativeEvent.text.toUpperCase() === whLoc.toUpperCase()) {
                             // console.log('WH location verified');
                             setVerifyWHLoc(false);
                             } else if (verifyWHLoc) {
+                                // console.log("verify cc scanned: ", e.nativeEvent.text.toUpperCase());
+                                // console.log("verify cc expected: ", ccLoc.toUpperCase());
                                 setErrorMessage(`Location doesn't match \n expected: ${whLoc.toUpperCase()} \n scanned: ${e.nativeEvent.text.toUpperCase()}`);
                                 setErrorVisible(true);
                                 setTimeout(() => {
                                     scanWhRef.current?.focus();
                                 }, 100)
-                            }
+                            } 
                         }}
                     />
                     <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
@@ -273,6 +321,8 @@ const ScanItem = ({}) => {
                             // console.log('WH location verified');
                             setVerifyCCLoc(false);
                             } else if (verifyCCLoc) {
+                                console.log("verify cc scanned: ", e.nativeEvent.text.toUpperCase());
+                                console.log("verify cc expected: ", ccLoc.toUpperCase());
                                 setErrorMessage(`Location doesn't match \n expected: ${ccLoc.toUpperCase()} \n scanned: ${e.nativeEvent.text.toUpperCase()}`);
                                 setErrorVisible(true);
                                 setTimeout(() => {
@@ -338,6 +388,7 @@ const ScanItem = ({}) => {
                     </>}
                     {editPrimaryLoc && <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{confirmMessage}</Text>}
                     {editSecondaryLoc && <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{confirmMessage}</Text>}
+                    {newLocText.length > 0 && <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{confirmMessage}</Text>}
                     <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
                         <TouchableOpacity onPress={() => {
                             setEditWHQty(false);
@@ -348,6 +399,10 @@ const ScanItem = ({}) => {
                             setVerifyWHText('');
                             setPrimaryLocText('');
                             setSecondaryLocText('');
+                            setCreateLocVisible(false);
+                            setCreateWh(false);
+                            setCreateCc(false);
+                            setNewLocText('');
                             setConfirmVisible(false);
                         }}>
                             <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(20), fontWeight: 'bold'}}>Close</Text>
@@ -355,17 +410,97 @@ const ScanItem = ({}) => {
                     </View>
                 </View>
             </Modal>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={createLocVisible}
+                onRequestClose={() => {
+
+            }}>
+                <View style={{backgroundColor: '#000000bb', width: '70%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(125), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
+                    {createWh && <Text style={{ color: '#fff', textAlign: 'center', fontSize: 20 }}>New Warehouse Location</Text>}
+                    {createCc && <Text style={{ color: '#fff', textAlign: 'center', fontSize: 20 }}>New Cash/Carry Location</Text>}
+                    <TextInput 
+                        // ref={primaryLocRef}
+                        autoFocus={true}
+                        style={{color: '#fff', borderColor: "#1D9E75", borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginLeft: rs(15), marginTop: rs(10), marginBottom: rs(15), fontSize: rs(16), width: 200}}
+                        placeholder={"Enter new location"}
+                        placeholderTextColor={'#979797'}
+                        // value={primaryLocText}
+                        onChangeText={(text) => {
+                            setNewLocText(text.toUpperCase());
+                        }}
+                    />
+                    <View style={{flexDirection: 'row'}}>
+                        <TouchableOpacity style={{...styles.applyBtn, width: '50%', marginHorizontal: 'auto', marginTop: rs(10), marginBottom: rs(15), padding: rs(10), borderRadius: rs(8)}}
+                            onPress={() => {
+                                if (newLocText === '' || newLocText.length === 0) {
+                                    setErrorMessage("Must enter a location to update");
+                                    setErrorVisible(true);
+                                } else {
+
+                                    if (createWh) {
+                                       updateLocation(1, "", newLocText); 
+                                    }
+
+                                    if (createCc) {
+                                        updateLocation(2, "", newLocText);
+                                    }
+                                    // updateLocation(1, whLoc, primaryLocText);
+                                    // console.log("update location: ", 1, itemObj[0].primaryBin, primaryLocText);
+                                }
+                            }}>
+                            <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(20)}}>Update</Text>
+                        </TouchableOpacity>
+                        <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(10), marginBottom: rs(15)}}>
+                            <TouchableOpacity onPress={() => {
+                                setCreateLocVisible(false);
+                                setCreateWh(false);
+                                setCreateCc(false);
+                                setNewLocText('');
+                            }}>
+                                <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(20), fontWeight: 'bold'}}>Close</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
                 {!itemObj &&
                  <View style={{flex: 1, justifyContent: 'center', paddingHorizontal: '5%'}}>
                     <TextInput 
                         placeholder='|||| Item number or UPC' placeholderTextColor={'#919191'} style={[styles.skuInput, { padding: rs(25), fontSize: rs(20), height: rs(75), borderRadius: rs(15) }]} 
-                        showSoftInputOnFocus={false} 
+                        // showSoftInputOnFocus={false} 
                         autoFocus={true} 
                         value={item} 
                         onChangeText={(text) => {
-                        setItem(text);
-                    }} />
-                    <Text style={{color: '#8f8f8f', textAlign: 'center', marginTop: rs(20), fontSize: rs(14)}}>Scan item or type. Press Enter.</Text>
+                            setItem(text);
+                        }} 
+                        onKeyPress={(e) => {
+                            if (e.nativeEvent.key === 'Enter') {
+                                setEnterSubmitted(true);
+                            }
+                        }}
+                    />
+                    <View style={{display: 'flex', flexDirection: 'row'}}>
+                        <TouchableOpacity style={{...styles.applyBtn, width: '30%', marginHorizontal: 'auto', marginTop: rs(10), padding: rs(10), borderRadius: rs(8)}}
+                            onPress={() => {
+                                if (item.length > 0) {
+                                    fillItem();
+                                } else {
+                                    setErrorMessage("Please scan or enter an item number or UPC");
+                                    setErrorVisible(true);
+                                }
+                            }}>
+                            <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(20)}}>Get Bins</Text>
+                        </TouchableOpacity>
+                        <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(10)}}>
+                            <TouchableOpacity onPress={() => {
+                                setItem('')
+                            }}>
+                                <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(20), fontWeight: 'bold'}}>Clear</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </View>}
                 {itemObj !== undefined && 
                     <ScrollView>
@@ -398,7 +533,7 @@ const ScanItem = ({}) => {
                                     }
                                 </View>
                                 <View style={{...styles.itemOverview, marginTop: 10, paddingTop: rs(10), paddingBottom: 0, borderTopEndRadius: 10, borderTopLeftRadius: 10}}>
-                                    <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+                                    {whLoc.length > 0 && <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
                                         <View style={{...styles.itemDetailFlex, flexDirection: 'column'}}>
                                             <Text style={[styles.itemDetailsHead, { marginBottom: 5, marginLeft: 20, fontSize: rs(13) }]}>Warehouse Location</Text>
                                             <Text style={[styles.itemQty, { alignSelf: 'flex-start', fontSize: rs(15), marginTop: 0, marginLeft: 20 }]}>{whLoc}</Text>
@@ -411,9 +546,16 @@ const ScanItem = ({}) => {
                                         }}>
                                             <Image style={[styles.pencilIcon, { width: rs(32), height: rs(32), marginRight: rs(15), marginTop: rs(15) }]} source={map} />
                                         </TouchableOpacity>
-                                    </View>
+                                    </View>}
+                                    {whLoc.length === 0 && <TouchableOpacity style={{...styles.applyBtn, width: '50%', marginHorizontal: 'auto', marginTop: rs(10), marginBottom: rs(15), padding: rs(10), borderRadius: rs(8)}}
+                                                onPress={() => {
+                                                    setCreateWh(true);
+                                                    setCreateLocVisible(true);
+                                                }}>
+                                                <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Add Warehouse Location</Text>
+                                            </TouchableOpacity>}
                                     <View>
-                                        {(editWHQty === false && editPrimaryLoc === false) && <View style={{...styles.itemDetailFlex, marginTop: rs(10)}}>
+                                        {(editWHQty === false && editPrimaryLoc === false && whLoc.length > 0) && <View style={{...styles.itemDetailFlex, marginTop: rs(10)}}>
                                             <Text style={[styles.itemDetailsHead, { fontSize: rs(13) }]}>Quantity</Text>
                                                 <View style={styles.textGroup}>
                                                     <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{numberCommaFormat(defaultPrimaryQty)}</Text>
@@ -500,7 +642,7 @@ const ScanItem = ({}) => {
                                                             {/* {Number.isFinite(whQty) > 0 && <Text style={{color: '#fff', textAlign: 'center', marginTop: 10, fontSize: rs(20)}}>New Total: {whQty}</Text>} */}
                                                             <TouchableOpacity style={{...styles.applyBtn, marginTop: 20, width: '50%', marginHorizontal: 'auto', padding: rs(10), borderRadius: rs(8)}}
                                                             onPress={() => {
-                                                                updateBinQty(itemObj[0].primaryBin, parseInt(whQty), parseInt(whQty) - defaultPrimaryQty, "primary");
+                                                                updateBinQty(whLoc, parseInt(whQty), parseInt(whQty) - defaultPrimaryQty, "primary");
                                                             }}>
                                                                 <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Apply</Text>
                                                             </TouchableOpacity>
@@ -510,8 +652,8 @@ const ScanItem = ({}) => {
                                         </View>}
                                     </View>
                                 </View>
-                                {itemObj[0].secondaryBin.length > 0 && <View style={{...styles.itemOverview, marginTop: 10, paddingBottom: 0, borderTopEndRadius: 10, borderTopLeftRadius: 10}}>
-                                    <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+                                <View style={{...styles.itemOverview, marginTop: 10, paddingBottom: 0, borderTopEndRadius: 10, borderTopLeftRadius: 10}}>
+                                    {ccLoc.length > 0 && <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
                                         <View style={{...styles.itemDetailFlex, flexDirection: 'column'}}>
                                             <Text style={[styles.itemDetailsHead, { marginBottom: 5, marginLeft: 20, fontSize: rs(13) }]}>Cash/Carry Location</Text>
                                             <Text style={[styles.itemQty, { alignSelf: 'flex-start', fontSize: rs(15), marginTop: 0, marginLeft: 20 }]}>{ccLoc}</Text>
@@ -524,7 +666,14 @@ const ScanItem = ({}) => {
                                         }}>
                                             <Image style={[styles.pencilIcon, { width: rs(32), height: rs(32), marginRight: rs(15), marginTop: rs(15) }]} source={map} />
                                         </TouchableOpacity>
-                                    </View>
+                                    </View>}
+                                        {ccLoc.length === 0 && <TouchableOpacity style={{...styles.applyBtn, width: '50%', marginHorizontal: 'auto', marginTop: rs(10), marginBottom: rs(15), padding: rs(10), borderRadius: rs(8)}}
+                                            onPress={() => {
+                                                setCreateCc(true);
+                                                setCreateLocVisible(true);
+                                            }}>
+                                            <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Add Cash/Carry Location</Text>
+                                            </TouchableOpacity>}
                                     <View>
                                         {editSecondaryLoc === true && <View style={styles.itemDetailFlex}>
                                             <TextInput 
@@ -560,7 +709,7 @@ const ScanItem = ({}) => {
                                             </TouchableOpacity>
                                         </View>
                                         }
-                                        {(editCCQty === false && editSecondaryLoc === false) && <View style={styles.itemDetailFlex}>
+                                        {(editCCQty === false && editSecondaryLoc === false && ccLoc.length > 0) && <View style={styles.itemDetailFlex}>
                                             <Text style={[styles.itemDetailsHead, { fontSize: rs(13) }]}>Quantity</Text>
                                                 <View style={styles.textGroup}>
                                                     <Text style={[styles.itemQty, { fontSize: rs(20) }]}>{numberCommaFormat(defaultSecondaryQty)}</Text>
@@ -615,7 +764,7 @@ const ScanItem = ({}) => {
                                                          <TouchableOpacity 
                                                             style={{...styles.applyBtn, marginTop: 20, width: '50%', marginHorizontal: 'auto', padding: rs(10), borderRadius: rs(8)}}
                                                             onPress={() => {
-                                                                updateBinQty(itemObj[0].secondaryBin, parseInt(ccQty), parseInt(ccQty) - defaultSecondaryQty, "secondary");
+                                                                updateBinQty(ccLoc, parseInt(ccQty), parseInt(ccQty) - defaultSecondaryQty, "secondary");
                                                             }}>
                                                             <Text style={{color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: rs(15)}}>Apply</Text>
                                                         </TouchableOpacity>
@@ -624,7 +773,7 @@ const ScanItem = ({}) => {
                                                 </View>
                                         </View>}
                                     </View>
-                                </View>}
+                                </View>
                                 <View style={{...styles.itemOverview, marginTop: 10, paddingBottom: 0, borderTopEndRadius: 10, borderTopLeftRadius: 10, }}>
                                     <TouchableOpacity onPress={() => {
                                         router.push('storage')
