@@ -481,7 +481,7 @@ const ScanItem = ({}) => {
                             }
                         }}
                     />
-                    <View style={{display: 'flex', flexDirection: 'row'}}>
+                    {/* <View style={{display: 'flex', flexDirection: 'row'}}>
                         <TouchableOpacity style={{...styles.applyBtn, width: '30%', marginHorizontal: 'auto', marginTop: rs(10), padding: rs(10), borderRadius: rs(8)}}
                             onPress={() => {
                                 if (item.length > 0) {
@@ -500,7 +500,7 @@ const ScanItem = ({}) => {
                                 <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(20), fontWeight: 'bold'}}>Clear</Text>
                             </TouchableOpacity>
                         </View>
-                    </View>
+                    </View> */}
                 </View>}
                 {itemObj !== undefined && 
                     <ScrollView>
