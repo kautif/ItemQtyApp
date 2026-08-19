@@ -195,8 +195,8 @@ const Bins = ({}) => {
                         setBin(text);
                     }} 
                     onKeyPress={(e) => {
-                        if (e.nativeEvent.key === 'Enter' && upc.length > 0) {
-                            getBins();
+                        if (e.nativeEvent.key === 'Enter') {
+                            setEnterSource(true);
                         }
                     }}
                     />
@@ -211,8 +211,8 @@ const Bins = ({}) => {
                         setUPC(text);
                     }} 
                     onKeyPress={(e) => {
-                        if (e.nativeEvent.key === 'Enter') {
-                            setEnterItem(true);
+                        if (e.nativeEvent.key === 'Enter' && bin.length > 0) {
+                            getBins()
                         }
                     }}
                     />
