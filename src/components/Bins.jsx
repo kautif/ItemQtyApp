@@ -19,6 +19,9 @@ const Bins = ({}) => {
     const [sku, setSKU] = useState("");
     const [itemId, setItemId] = useState(0);
 
+    const [enterSource, setEnterSource] = useState(false);
+    const [enterItem, setEnterItem] = useState(false);
+
     const [errorVisible, setErrorVisible] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
@@ -36,7 +39,7 @@ const Bins = ({}) => {
             fromBinNumber: bin
          }).then(response => {
             if (response.data.success) {
-                console.log("bin response: ", response.data);
+                console.log("bin response: ", response.data.binItemData[0].availableBins);
                 setAvailableBins(response.data.binItemData[0].availableBins);
 
                 for (let i = 0; i < response.data.binItemData[0].availableBins.length; i++) {
@@ -55,6 +58,8 @@ const Bins = ({}) => {
                 setBin('');
                 setSKU('');
                 setUPC('');
+                setEnterSource(false);
+                setEnterItem(false);
                 setErrorVisible(true);
             }
          })
@@ -62,6 +67,10 @@ const Bins = ({}) => {
 
     function numberCommaFormat(num) {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    function hasNumber(myString) {
+        return /\d/.test(myString);
     }
 
     function transferToBin() {
@@ -92,10 +101,10 @@ const Bins = ({}) => {
     }, [bin])
 
     useEffect(() => {
-        if (upc.length > 0) {
+        if (enterItem) {
             getBins();
         }
-    }, [upc])
+    }, [enterItem])
 
     useEffect(() => {
         if (binQty === 0) {
@@ -107,6 +116,8 @@ const Bins = ({}) => {
             setItemId('');
             setAvailableBins([]);
             setPossibleBins([]);
+            setEnterSource(false);
+            setEnterItem(false);
             setErrorMessage(` ${bin} has 0 quantity of this item`);
             setErrorVisible(true);
         }
@@ -156,6 +167,8 @@ const Bins = ({}) => {
                             setBin('');
                             setDesc('');
                             setDest('');
+                            setEnterSource(false);
+                            setEnterItem(false);
                             setAvailableBins([]);
                             setPossibleBins([]);
                             setBinQty();
@@ -175,22 +188,35 @@ const Bins = ({}) => {
                     ref={fromBinRef}
                     placeholder='|||| Scan / Enter source bin' placeholderTextColor={'#919191'} 
                     style={[styles.skuInput, { padding: rs(25), fontSize: rs(20), height: rs(75), borderRadius: rs(15), marginTop: 40 }]} 
-                    showSoftInputOnFocus={false} 
+                    // showSoftInputOnFocus={false} 
                     autoFocus={true} 
                     value={bin} 
                     onChangeText={(text) => {
-                    setBin(text);
-                }} />
+                        setBin(text);
+                    }} 
+                    onKeyPress={(e) => {
+                        if (e.nativeEvent.key === 'Enter') {
+                            setEnterSource(true);
+                        }
+                    }}
+                    />
 
-                {bin.length > 0 && <TextInput 
+                {enterSource && <TextInput 
                     placeholder='|||| Scan Item' placeholderTextColor={'#919191'} 
                     style={[styles.skuInput, { padding: rs(25), fontSize: rs(20), height: rs(75), borderRadius: rs(15), marginTop: 40 }]} 
                     showSoftInputOnFocus={false} 
                     autoFocus={true} 
                     value={upc} 
                     onChangeText={(text) => {
-                    setUPC(text);
-                }} />}
+                        setUPC(text);
+                    }} 
+                    onKeyPress={(e) => {
+                        if (e.nativeEvent.key === 'Enter') {
+                            setEnterItem(true);
+                        }
+                    }}
+                    />
+                    }
                 {sku && 
                 <>
                     <View style={[styles.itemOverview, {marginTop: 20}]}>
@@ -256,6 +282,15 @@ const Bins = ({}) => {
                             </View>
                         </View>
                     </View>
+                        <View style={[styles.itemOverview, {marginTop: 20}]}>
+                            <Text style={styles.itemDetailsHead}>Locations</Text>
+                            {possibleBins.map((someBin, i) => {
+                                if (hasNumber(someBin)) {
+                                    return <Text key={`bin-${i}`} style={[styles.itemDesc, { fontSize: rs(15) }]}>{someBin}</Text>
+                                }
+                            })}
+                            <Text style={[styles.itemDesc, { fontSize: rs(15) }]}>{bin}</Text>
+                        </View>
                     <TextInput 
                         ref={destInputRef}
                         placeholder='|||| Scan / Enter destination bin' placeholderTextColor={'#919191'} 
