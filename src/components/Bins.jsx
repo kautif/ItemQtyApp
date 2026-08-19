@@ -95,16 +95,16 @@ const Bins = ({}) => {
     }
 
     // useEffect(() => {
-    //     if (bin.length > 0) {
-
+    //     if (upc.length > 0) {
+    //         getBins
     //     }
-    // }, [bin])
+    // }, [upc])
 
-    // useEffect(() => {
-        // if (enterItem) {
-        //     getBins();
-        // }
-    // }, [enterItem])
+    useEffect(() => {
+        if (enterItem === true) {
+            getBins();
+        }
+    }, [enterItem])
 
     useEffect(() => {
         if (binQty === 0) {
@@ -211,8 +211,8 @@ const Bins = ({}) => {
                         setUPC(text);
                     }} 
                     onKeyPress={(e) => {
-                        if (e.nativeEvent.key === 'Enter' && upc.length > 0) {
-                            getBins();
+                        if (e.nativeEvent.key === 'Enter') {
+                            setEnterItem(true);
                         }
                     }}
                     />
