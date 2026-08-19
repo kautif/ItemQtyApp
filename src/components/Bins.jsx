@@ -101,9 +101,9 @@ const Bins = ({}) => {
     }, [bin])
 
     useEffect(() => {
-        if (enterItem) {
-            getBins();
-        }
+        // if (enterItem) {
+        //     getBins();
+        // }
     }, [enterItem])
 
     useEffect(() => {
@@ -195,8 +195,8 @@ const Bins = ({}) => {
                         setBin(text);
                     }} 
                     onKeyPress={(e) => {
-                        if (e.nativeEvent.key === 'Enter') {
-                            setEnterSource(true);
+                        if (e.nativeEvent.key === 'Enter' && upc.length > 0) {
+                            getBins();
                         }
                     }}
                     />
