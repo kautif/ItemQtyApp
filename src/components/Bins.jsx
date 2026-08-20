@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ImageBackground } from 'expo-image';
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import useResponsive from '../hooks/useResponsive';
 
@@ -111,6 +111,7 @@ const Bins = ({}) => {
 
     useEffect(() => {
         if (enterItem === true) {
+            Alert.alert("ITEM");
             getBins();
             setTimeout(() => {
                 destInputRef.current?.focus()
