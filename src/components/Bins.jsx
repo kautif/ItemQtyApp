@@ -102,6 +102,14 @@ const Bins = ({}) => {
     // }, [upc])
 
     useEffect(() => {
+        if (enterSource === true) {
+            setTimeout(() => {
+                itemRef.current?.focus();
+            }, 100)
+        }
+    }, [enterSource])
+
+    useEffect(() => {
         if (enterItem === true) {
             getBins();
             setTimeout(() => {
