@@ -30,6 +30,7 @@ const Bins = ({}) => {
     const fromBinRef = useRef(null);
     const binInputRef = useRef(null);
     const destInputRef = useRef(null);
+    const itemRef = useRef(null);
     const employeeId = useSelector(state => state.items.employeeId);
 
     const getBins = () => {
@@ -103,6 +104,9 @@ const Bins = ({}) => {
     useEffect(() => {
         if (enterItem === true) {
             getBins();
+            setTimeout(() => {
+                destInputRef.current?.focus()
+            }, 100)
         }
     }, [enterItem])
 
@@ -167,13 +171,13 @@ const Bins = ({}) => {
                             setBin('');
                             setDesc('');
                             setDest('');
-                            setEnterSource(false);
-                            setEnterItem(false);
                             setAvailableBins([]);
                             setPossibleBins([]);
                             setBinQty();
                             setBinInput(1);
                             setItemId(0);
+                            setEnterSource(false);
+                            setEnterItem(false);
                             setTimeout(() => {
                                 fromBinRef.current?.focus();
                             }, 100)
@@ -201,10 +205,11 @@ const Bins = ({}) => {
                     }}
                     />
 
-                {enterSource && <TextInput 
+                {enterSource && <TextInput
+                    ref={itemRef}
                     placeholder='|||| Scan Item' placeholderTextColor={'#919191'} 
                     style={[styles.skuInput, { padding: rs(25), fontSize: rs(20), height: rs(75), borderRadius: rs(15), marginTop: 40 }]} 
-                    showSoftInputOnFocus={false} 
+                    // showSoftInputOnFocus={false} 
                     autoFocus={true} 
                     value={upc} 
                     onChangeText={(text) => {
@@ -213,6 +218,7 @@ const Bins = ({}) => {
                     onKeyPress={(e) => {
                         if (e.nativeEvent.key === 'Enter') {
                             setEnterItem(true);
+                            console.log("ENTER enterItem");
                         }
                     }}
                     />
