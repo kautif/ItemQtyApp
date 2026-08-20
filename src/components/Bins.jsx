@@ -201,7 +201,8 @@ const Bins = ({}) => {
                     ref={fromBinRef}
                     placeholder='|||| Scan / Enter source bin' placeholderTextColor={'#919191'} 
                     style={[styles.skuInput, { padding: rs(25), fontSize: rs(20), height: rs(75), borderRadius: rs(15), marginTop: 40 }]} 
-                    // showSoftInputOnFocus={false} 
+                    showSoftInputOnFocus={false} 
+                    submitBehavior="submit"
                     autoFocus={true} 
                     value={bin} 
                     onChangeText={(text) => {
@@ -218,7 +219,8 @@ const Bins = ({}) => {
                     ref={itemRef}
                     placeholder='|||| Scan Item' placeholderTextColor={'#919191'} 
                     style={[styles.skuInput, { padding: rs(25), fontSize: rs(20), height: rs(75), borderRadius: rs(15), marginTop: 40 }]} 
-                    // showSoftInputOnFocus={false} 
+                    showSoftInputOnFocus={false} 
+                    submitBehavior="submit"
                     autoFocus={true} 
                     value={upc} 
                     onChangeText={(text) => {
@@ -268,7 +270,7 @@ const Bins = ({}) => {
                                             style={[styles.qtyInput, { color: '#fff', textAlign: 'center', padding: rs(10), width: wp(45), maxWidth: rs(200) }]}
                                             placeholder={'Change quantity'}
                                             placeholderTextColor={'#919191'}
-                                            // showSoftInputOnFocus={false}
+                                            showSoftInputOnFocus={false}
                                             value={binInput.toString()}
                                             keyboardType='number-pad'
                                             onChangeText={(val) => {

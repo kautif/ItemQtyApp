@@ -469,7 +469,7 @@ const ScanItem = ({}) => {
                  <View style={{flex: 1, justifyContent: 'center', paddingHorizontal: '5%'}}>
                     <TextInput 
                         placeholder='|||| Item number or UPC' placeholderTextColor={'#919191'} style={[styles.skuInput, { padding: rs(25), fontSize: rs(20), height: rs(75), borderRadius: rs(15) }]} 
-                        // showSoftInputOnFocus={false} 
+                        showSoftInputOnFocus={false} 
                         autoFocus={true} 
                         value={item} 
                         onChangeText={(text) => {
@@ -619,7 +619,7 @@ const ScanItem = ({}) => {
                                                                 style={[styles.qtyInput, { color: '#fff', textAlign: 'center', padding: rs(10), width: wp(45), maxWidth: rs(200) }]}
                                                                 placeholder={'Change quantity'}
                                                                 placeholderTextColor={'#919191'}
-                                                                // showSoftInputOnFocus={false}
+                                                                showSoftInputOnFocus={false}
                                                                 value={whQty.toString()}
                                                                 keyboardType='number-pad'
                                                                 onChangeText={(val) => {
@@ -740,7 +740,7 @@ const ScanItem = ({}) => {
                                                                 style={[styles.qtyInput, { color: '#fff', textAlign: 'center', padding: rs(10), width: wp(45), maxWidth: rs(200) }]}
                                                                 placeholder={'Change total quantity'}
                                                                 placeholderTextColor={'#919191'}
-                                                                // showSoftInputOnFocus={false}
+                                                                showSoftInputOnFocus={false}
                                                                 value={ccQty.toString()}
                                                                 keyboardType='number-pad'
                                                                 onChangeText={(val) => {
