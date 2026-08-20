@@ -111,7 +111,7 @@ const Bins = ({}) => {
 
     useEffect(() => {
         if (enterItem === true) {
-            Alert.alert("ITEM");
+            // Alert.alert("ITEM");
             getBins();
             setTimeout(() => {
                 destInputRef.current?.focus()

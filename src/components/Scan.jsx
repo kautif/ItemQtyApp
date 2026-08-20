@@ -299,7 +299,7 @@ const Scan = ({ navigation }) => {
                 // ref={inputRef}
                 style={[styles.input, { width: wp(78), maxWidth: rs(300), height: rs(60), fontSize: rs(16) }]}
                 value={ipAddress}
-                // showSoftInputOnFocus={false}
+                showSoftInputOnFocus={false}
                 autoFocus
                 onChangeText={(text) => {
                   setIpAddress(text);
@@ -401,7 +401,7 @@ const Scan = ({ navigation }) => {
           />
         </TouchableOpacity> */}
 
-        <Text style={[styles.version, { fontSize: rs(12) }]}>Version 2.11.8 (Bin App)</Text>
+        <Text style={[styles.version, { fontSize: rs(12) }]}>Version 2.11.9 (Bin App)</Text>
 
         <View style={styles.scanBox}>
           <TextInput
