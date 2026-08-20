@@ -232,6 +232,10 @@ const Bins = ({}) => {
                             console.log("ENTER enterItem");
                         }
                     }}
+                    onSubmitEditing={() => {
+                        setEnterItem(true);
+                        console.log("ENTER enterItem (onSubmitEditing)");
+                    }}
                     />
                     }
                 {sku && 
