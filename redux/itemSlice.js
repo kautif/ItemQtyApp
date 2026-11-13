@@ -4,7 +4,9 @@ const initialState = {
     pallets: [],
     itemId: 0,
     employeeId: '',
-    ip: ''
+    ip: '',
+    isForklift: '',
+    forkliftLoc: ''
 }
 
 const itemSlice = createSlice({
@@ -26,6 +28,12 @@ const itemSlice = createSlice({
         setIp: (state, action) => {
             state.ip = action.payload;
         },
+        setIsForklift: (state, action) => {
+            state.isForkLift = action.payload;
+        },
+        setForkliftLoc: (state, action) => {
+            state.forkliftLoc = action.payload;
+        },
         resetUser: (state, action) => {
             state.items = [];
             state.pallets = [];
@@ -35,5 +43,5 @@ const itemSlice = createSlice({
     }
 })
 
-export const {setItems, setPallets, setItemId, setEmployeeId, setIp, resetUser } = itemSlice.actions;
+export const {setItems, setPallets, setItemId, setEmployeeId, setIp, setForkliftLoc, setIsForkLift, resetUser } = itemSlice.actions;
 export default itemSlice.reducer;

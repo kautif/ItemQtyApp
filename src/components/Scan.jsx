@@ -19,7 +19,7 @@ import {
   View
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { setEmployeeId, setIp } from '../../redux/itemSlice';
+import { setEmployeeId, setForkliftLoc, setIp } from '../../redux/itemSlice';
 import useResponsive from '../hooks/useResponsive';
 import { addLog, clearLogs, formatLogsAsText, getLogs } from '../utils/scanLogger';
 
@@ -28,6 +28,7 @@ const gear = require('../../assets/images/settings.png');
 
 const Scan = ({ navigation }) => {
   const ip = useSelector(state => state.items.ip);
+  const forkliftLoc = useSelector(state => state.items.forkliftLoc);
 
   const dispatch = useDispatch();
 
@@ -39,7 +40,10 @@ const Scan = ({ navigation }) => {
   const [badgeId, setBadgeId] = useState('');
   const [ipAddress, setIpAddress] = useState('');
 
+  const [forklift, setForklift] = useState('');
+
   const [modalVisible, setModalVisible] = useState(false);
+  const [forkliftVisible, setForkliftVisible] = useState(false);
   const [settingsVisible, setSettingsVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -172,6 +176,7 @@ const Scan = ({ navigation }) => {
       } else {
           addLog('api_request_success', { code, employeeID: emp.employeeID });
           dispatch(setEmployeeId(emp.employeeID));
+          console.log("emp: ", emp);
       }
 
       // dispatch(setUsername(emp.employeeName));
@@ -186,7 +191,12 @@ const Scan = ({ navigation }) => {
       //   })
       // );
 
-      router.replace('/menu');
+      if (emp.isForkLift) {
+        console.log("SCAN FORKLIFT");
+        setForkliftVisible(true);
+      } else {
+        router.replace('/menu');
+      }
     } catch (err) {
       const detail = err?.response?.status
         || err?.code
@@ -200,6 +210,23 @@ const Scan = ({ navigation }) => {
       Alert.alert('Error', `[${detail}] ${err?.message}`);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function verifyForklift() {
+    try {
+      const response = await axios.post('http://192.168.2.165:81/api/Pallet/verifyBin', {
+        token: 'Yh2k7QSu4l8CZg5p6X3Pna9L0Miy4D3Bvt0JVr87UcOj69Kqw5R2Nmf4FWs03Hdx',
+        binNumber: forklift
+      })
+
+      console.log("forklift: ", response.data);
+      if (response.data.success) {
+        dispatch(setForkliftLoc(forklift));
+        router.replace('/menu');
+      }
+    } catch (err) {
+      console.log("forklift err: ", err.message);
     }
   }
 
@@ -225,6 +252,13 @@ const Scan = ({ navigation }) => {
       showToast(`IP Address updated to ${ip}`);
     }
   }, [ip])
+
+  useEffect(() => {
+    if (forklift.length > 0) {
+      verifyForklift();
+    }
+  }, [forklift])
+
 
   // ## LOGGING ## - app backgrounding is a common cause of "the badge was
   // scanned but nothing happened": if the device sleeps or another app
@@ -263,6 +297,34 @@ const Scan = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.innerContainer}>
+        {/* FORKLIFT MODAL */}
+        <Modal transparent visible={forkliftVisible} animationType="fade">
+          <View style={styles.modalBackdrop}>
+            <View style={[styles.modalView, { width: wp(80), maxWidth: rs(400) }]}>
+              <Text style={[styles.modalText, { fontSize: rs(18) }]}>SCAN FORKLIFT</Text>
+              <TextInput
+                // ref={inputRef}
+                style={[styles.input, { width: wp(78), maxWidth: rs(300), height: rs(60), fontSize: rs(16) }]}
+                value={forklift}
+                showSoftInputOnFocus={false}
+                autoFocus
+                onChangeText={(text) => {
+                  setForklift(text);
+                }}
+                returnKeyType="done"
+              />
+              <TouchableOpacity
+                style={[styles.okButton, { paddingVertical: rs(10), paddingHorizontal: rs(30)}]}
+                onPress={() => {
+                  setForkliftVisible(false);
+                  setBadgeId('');
+                  setLastSubmitted('');
+                }}>
+                <Text style={[styles.okButtonText, { fontSize: rs(18) }]}>CANCEL</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
         {/* ERROR MODAL */}
         <Modal transparent visible={modalVisible} animationType="fade">
           <View style={styles.modalBackdrop}>
@@ -275,8 +337,7 @@ const Scan = ({ navigation }) => {
                   setModalVisible(false);
                   setBadgeId('');
                   setLastSubmitted('');
-                }}
-              >
+                }}>
                 <Text style={[styles.okButtonText, { fontSize: rs(18) }]}>OK</Text>
               </TouchableOpacity>
             </View>
@@ -392,7 +453,7 @@ const Scan = ({ navigation }) => {
             dispatch(setIp(''));
             setIpAddress('');
             setSettingsVisible(true);
-          }}
+          
         >
           <Image
             style={[styles.logo, { width: rs(40), height: rs(40), maxWidth: wp(100), maxHeight: wp(80) }]}
@@ -401,7 +462,7 @@ const Scan = ({ navigation }) => {
           />
         </TouchableOpacity> */}
 
-        <Text style={[styles.version, { fontSize: rs(12) }]}>Version 2.11.9 (Bin App)</Text>
+        <Text style={[styles.scanText, { fontSize: rs(12) }]}>Version 3.0 (Bin App)</Text>
 
         <View style={styles.scanBox}>
           <TextInput
