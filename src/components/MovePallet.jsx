@@ -19,6 +19,12 @@ const MovePallet = ({}) => {
     const [currentBin, setCurrentBin] = useState('');
     const [lane, setLane] = useState('');
 
+    const [palletEntered, setPalletEntered] = useState(false);
+    const [stagingEntered, setStagingEntered] = useState(false);
+    const [getPalletErrVisible, setGetPalletErrVisible] = useState(false); 
+    const [movePalletErrVisible, setMovePalletErrVisible] = useState(false); 
+    const [palletErr, setPalletErr] = useState("");
+
 
     const forkliftLoc = useSelector(state => state.items.forkliftLoc);
     const employeeID = useSelector(state => state.items.employeeId);
@@ -33,6 +39,8 @@ const MovePallet = ({}) => {
 
             if (!response?.data?.success) {
                 console.log("getPallet failed");
+                setPalletErr(response.data.reason);
+                setGetPalletErrVisible(true);
             } else {
                 console.log("getPallet: ", response);
                 setPalletData(response.data.palletDetailData);
@@ -40,6 +48,8 @@ const MovePallet = ({}) => {
 
         } catch (err) {
             console.log("error: ", err?.message);
+            setPalletErr(err?.message);
+            setGetPalletErrVisible(true);
         }
     }
 
@@ -56,17 +66,22 @@ const MovePallet = ({}) => {
             if (response.data.success) {
                 setMovePalletVisible(true);
                 setPalletData([]);
+            } else {
+                setPalletErr(response.data.reason);
+                setMovePalletErrVisible(true);
             }
         } catch (err) {
             console.log("movePallet err: ", err.message);
+            setPalletErr(err.message);
+            setMovePalletErrVisible(true);
         }
     }
 
     useEffect(() => {
-        if (palletId.length > 0) {
+        if (palletEntered) {
             getPallet();
         }
-    }, [palletId])
+    }, [palletEntered])
 
     useEffect(() => {
         if (palletData.length > 0) {
@@ -102,8 +117,28 @@ const MovePallet = ({}) => {
                     </View>
                 </View>
             </Modal>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={getPalletErrVisible || movePalletErrVisible}
+                onRequestClose={() => {
+                    
+            }}>
+                <View style={{backgroundColor: '#000000bb', width: '70%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(125), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
+                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{palletErr}</Text>
+                    <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
+                        <TouchableOpacity onPress={() => {
+                            setMovePalletErrVisible(false);
+                            setGetPalletErrVisible(false);
+                            // router.replace("/menu");
+                        }}>
+                            <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(20), fontWeight: 'bold'}}>Close</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
             <ScrollView>
-                <TextInput 
+                {!palletEntered && <TextInput 
                     ref={palletRef}
                     placeholder='|||| Scan / Enter pallet number' placeholderTextColor={'#919191'} 
                     style={[styles.skuInput, { padding: rs(25), fontSize: rs(20), height: rs(75), borderRadius: rs(15), marginTop: 40 }]} 
@@ -119,40 +154,62 @@ const MovePallet = ({}) => {
                         if (e.nativeEvent.key === 'Enter') {
                             // setEnterSource(true);
                             // getPallet();
+                            setPalletEntered(true);
                         }
-                    }}/>
+                    }}/>}
                     {palletData.length > 0 && <View>
                         <View style={{ backgroundColor: '#2b2b2b', borderColor: '#5f5f5f', borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(20)}}>
-                            <TouchableOpacity onPress={() => {
-                                // if (!showQty) {
-                                //     setVerifyPallet(true);
-                                // }
-                            }}>
                                 <View style={{display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-between'}}>
                                     <Text style={{color: '#979595', marginLeft: 10, fontSize: rs(14)}}>Pallet Location</Text>
+                                    <Text style={[styles.palletRow, { fontSize: rs(23) }]}>{palletData.length > 0 && palletData[0].currentBin}</Text>
                                     <View style={styles.palletTag}>
                                         <Text style={{color: '#28dba3', fontSize: rs(14)}}>#{palletId}</Text>
                                     </View>
                                 </View>
-                                <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-around', marginTop: 10, flexWrap: 'wrap'}}>
-                                    <View>
-                                        <Text style={[styles.palletCol, { fontSize: rs(12) }]}>LOCATION</Text>
-                                        <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{palletData.length > 0 && palletData[0].currentBin}</Text>
-                                    </View>
-                                    <View>
-                                        <Text style={[styles.palletCol, { fontSize: rs(12) }]}>STATUS</Text>
-                                        <Text style={[styles.palletRow, { fontSize: rs(15) }]}></Text>
-                                    </View>
-                                </View>
-                            </TouchableOpacity>
                         </View>
 
-                        <View style={{ backgroundColor: '#222121', borderColor: '#5f5f5f', borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(20)}}>
-                            <TouchableOpacity onPress={() => {
-                                // if (!showQty) {
-                                //     setVerifyPallet(true);
-                                // }
-                            }}>
+                        <View style={{ backgroundColor: '#2b2b2b', borderColor: '#5f5f5f', borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(20)}}>
+                                <View style={{width: '100%', justifyContent: 'space-between'}}>
+                                    <Text style={{color: '#979595', marginLeft: 10, fontSize: rs(14)}}>Move Pallet</Text>
+                                    <Text style={{color: '#818080', marginLeft: 10, fontSize: rs(14)}}>Unload pallet from location to forklift for staging</Text>
+                                    {
+                                        (currentBin.startsWith('FRK-') || currentBin.startsWith('FORKLIFT')) &&  <TextInput 
+                                                    ref={stagingRef}
+                                                    placeholder='|||| Scan / Enter staging lane' placeholderTextColor={'#919191'} 
+                                                    style={[styles.skuInput, { padding: rs(25), fontSize: rs(20), height: rs(75), borderRadius: rs(15), marginTop: 20, marginBottom: 20 }]} 
+                                                    showSoftInputOnFocus={false} 
+                                                    submitBehavior="submit"
+                                                    autoFocus={true} 
+                                                    value={lane} 
+                                                    onChangeText={(text) => {
+                                                        setLane(text);
+                                                    }} 
+                                                    onKeyPress={(e) => {
+                                                        if (e.nativeEvent.key === 'Enter') {
+                                                            // setEnterSource(true);
+                                                            setStagingEntered(true);
+                                                        }
+                                                    }}/>
+                                    }
+                                    {
+                                        (currentBin.startsWith('FRK-') || currentBin.startsWith('FORKLIFT')) && <TouchableOpacity disabled={!stagingEntered}
+                                        onPress={() => {
+                                        movePallet();
+                                    }} style={{ backgroundColor: '#1dac7f', paddingBottom: 20, borderRadius: 20}}>
+                                        <Text style={{color: 'white', fontSize: 20, textAlign: 'center', fontWeight: 'bold', marginTop: 15}}>🛣️Unload forklift to lane</Text>
+                                    </TouchableOpacity>
+                                    }
+                                    {
+                                    (!currentBin.startsWith('FRK-') && !currentBin.startsWith('FORKLIFT')) && <TouchableOpacity onPress={() => {
+                                        movePallet();
+                                    }} style={{ backgroundColor: '#1dac7f', paddingBottom: 20, borderRadius: 20}}>
+                                        <Text style={{color: 'white', fontSize: 20, textAlign: 'center', fontWeight: 'bold', marginTop: 15}}>🚜Unload pallet to forklift</Text>
+                                    </TouchableOpacity>
+                                    }
+                                </View>
+                        </View>
+
+                        <View style={{ backgroundColor: '#222121', borderColor: '#5f5f5f', borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(20), marginBottom: rs(80)}}>
                                 <View style={{display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-between'}}>
                                     <Text style={{color: '#979595', marginLeft: 10, fontSize: rs(14)}}>Items on Pallet</Text>
                                 </View>
@@ -160,19 +217,18 @@ const MovePallet = ({}) => {
                                     palletData && palletData.map((item, i) => { 
                                         return <View key={`palletItem-${i}`} style={{ backgroundColor: '#2b2b2b', borderColor: '#5f5f5f', borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(20)}}>
                                         <Text style={{ color: 'white', fontWeight: 'bold'}}>{item.description}</Text>
-                                        <Text style={{ color: 'white', fontWeight: 'bold'}}>QTY: {item.quantity}</Text>
-                                        <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-around', marginTop: 10, flexWrap: 'wrap'}}>
+                                        <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-around', marginTop: 0, flexWrap: 'wrap'}}>
                                             <View>
-                                                <Text style={[styles.palletCol, { fontSize: rs(12) }]}>LOCATION</Text>
-                                                <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{item.currentBin}</Text>
+                                                <Text style={[styles.palletCol, { fontSize: rs(12) }]}>EXP</Text>
+                                                <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{item.expiryDate}</Text>
                                             </View>
                                             <View>
                                                 <Text style={[styles.palletCol, { fontSize: rs(12) }]}>SKU</Text>
                                                 <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{item.sku}</Text>
                                             </View>
                                             <View>
-                                                <Text style={[styles.palletCol, { fontSize: rs(12) }]}>EXP</Text>
-                                                <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{item.expiryDate}</Text>
+                                                <Text style={[styles.palletCol, { fontSize: rs(12) }]}>QTY</Text>
+                                                <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{item.quantity}</Text>
                                             </View>
                                         </View>
                                     </View>
@@ -196,47 +252,6 @@ const MovePallet = ({}) => {
                                         </View>
                                     </View>
                                 </View> */}
-                            </TouchableOpacity>
-                        </View>
-
-                        <View style={{ backgroundColor: '#2b2b2b', borderColor: '#5f5f5f', borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(20), marginBottom: rs(80)}}>
-                                <View style={{width: '100%', justifyContent: 'space-between'}}>
-                                    <Text style={{color: '#979595', marginLeft: 10, fontSize: rs(14)}}>Move Pallet</Text>
-                                    <Text style={{color: '#818080', marginLeft: 10, fontSize: rs(14)}}>Unload pallet from location to forklift for staging</Text>
-                                    {
-                                        (currentBin.startsWith('FRK-') || currentBin.startsWith('FORKLIFT')) &&  <TextInput 
-                                                    ref={stagingRef}
-                                                    placeholder='|||| Scan / Enter staging lane' placeholderTextColor={'#919191'} 
-                                                    style={[styles.skuInput, { padding: rs(25), fontSize: rs(20), height: rs(75), borderRadius: rs(15), marginTop: 20, marginBottom: 20 }]} 
-                                                    showSoftInputOnFocus={false} 
-                                                    submitBehavior="submit"
-                                                    autoFocus={true} 
-                                                    value={lane} 
-                                                    onChangeText={(text) => {
-                                                        setLane(text);
-                                                    }} 
-                                                    onKeyPress={(e) => {
-                                                        if (e.nativeEvent.key === 'Enter') {
-                                                            // setEnterSource(true);
-                                                        }
-                                                    }}/>
-                                    }
-                                    {
-                                        (currentBin.startsWith('FRK-') || currentBin.startsWith('FORKLIFT')) && <TouchableOpacity disabled={lane.length === 0}
-                                        onPress={() => {
-                                        movePallet();
-                                    }} style={{ backgroundColor: '#1dac7f', paddingBottom: 20, borderRadius: 20}}>
-                                        <Text style={{color: 'white', fontSize: 20, textAlign: 'center', fontWeight: 'bold', marginTop: 15}}>🛣️Unload forklift to lane</Text>
-                                    </TouchableOpacity>
-                                    }
-                                    {
-                                    (!currentBin.startsWith('FRK-') && !currentBin.startsWith('FORKLIFT')) && <TouchableOpacity onPress={() => {
-                                        movePallet();
-                                    }} style={{ backgroundColor: '#1dac7f', paddingBottom: 20, borderRadius: 20}}>
-                                        <Text style={{color: 'white', fontSize: 20, textAlign: 'center', fontWeight: 'bold', marginTop: 15}}>🚜Unload pallet to forklift</Text>
-                                    </TouchableOpacity>
-                                    }
-                                </View>
                         </View>
                     </View>} 
             </ScrollView>

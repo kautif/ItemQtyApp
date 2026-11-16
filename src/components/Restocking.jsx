@@ -31,10 +31,17 @@ const Restocking = ({}) => {
     const [upcInput, setUPCinput] = useState("");
 
     const [palletItems, setPalletItems] = useState([]);
+    const [palletStatusVisible, setPalletStatusVisible] = useState(false);
+    const [palletStatusMsg, setPalletStatusMsg] = useState("");
 
     const [itemSelected, setItemSelected] = useState(false);
     const [selectedItem, setSelectedItem] = useState({});
     const [palletLoc, setPalletLoc] = useState("");
+
+    const [stagingEntered, setStagingEntered] = useState(false);
+    const [palletEntered, setPalletEntered] = useState(false);
+    const [itemEntered, setItemEntered] = useState(false);
+    const [destLaneEntered, setDestLaneEntered] = useState(false);
 
     const [showCalendar, setShowCalendar] = useState(false);
     const currentDate = new Date;
@@ -97,9 +104,14 @@ const Restocking = ({}) => {
             if (response.data.success) {
                 console.log("getPalletDetail: ", response.data);
                 setPalletItems(response.data.palletDetailData);
+            } else {
+                setPalletStatusVisible(true);
+                setPalletStatusMsg(response.data.reason);
             }
         } catch (err) {
             console.log("err: ", err.message);
+            setPalletStatusVisible(true);
+            setPalletStatusMsg(err.message);
         }
     }
 
@@ -179,10 +191,10 @@ const Restocking = ({}) => {
     }, [qtyInput])
 
     useEffect(() => {
-        if (upcInput.length > 0) {
+        if (itemEntered) {
             getPalletDetail();
         }
-    }, [upcInput])
+    }, [itemEntered])
 
     return (
         <ImageBackground source={ghraDark} resizeMode='contain' style={styles.backgroundImage}>
@@ -209,19 +221,42 @@ const Restocking = ({}) => {
             <Modal
                 animationType="slide"
                 transparent={true}
+                visible={palletStatusVisible}
+                onRequestClose={() => {
+                    
+            }}>
+                <View style={{backgroundColor: '#000000bb', width: '70%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(125), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
+                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{palletStatusMsg}</Text>
+                    <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
+                        <TouchableOpacity onPress={() => {
+                            setPalletStatusVisible(false);
+                            router.replace("/menu");
+                        }}>
+                            <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(20), fontWeight: 'bold'}}>Close</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+            <Modal
+                animationType="slide"
+                transparent={true}
                 visible={itemVisible}
                 onRequestClose={() => {
                     
             }}>
-                <View style={{position: 'relative', top: -125, backgroundColor: '#000000bb', width: '100%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(125), height: 550, padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
+                <View style={{position: 'relative', top: -125, backgroundColor: '#000000bb', width: '100%', marginHorizontal: 'auto', marginTop: hp(27), minHeight: rs(125), height: 550, padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
                     <ScrollView>
                         {itemSelected && <View>
                             <View key={`item-3`} style={{ backgroundColor: '#2b2b2b', borderRadius: rs(10), padding: rs(10), marginTop: rs(10), marginBottom: rs(15)}}>
                                     <Text style={{ color: '#b4b4b4'}}>{selectedItem.desc}</Text>
+                                    <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around'}}>
+                                        <Text style={{ color: 'white', fontWeight: 'bold', fontSize: rs(20)}}>{selectedItem.bin[0]}</Text>
+                                        <Text style={{ color: 'white', fontWeight: 'bold', fontSize: rs(20)}}>{selectedItem.bin[1]}</Text>
+                                    </View>
                                     <View style={{display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around'}}>
-                                        <Text style={{ color: '#b4b4b4'}}>Pallet: {palletInput}</Text>
-                                        <Text style={{ color: '#b4b4b4'}}>QTY: {selectedItem.qty}</Text>
-                                        <Text style={{ color: '#b4b4b4'}}>SKU: {selectedItem.sku}</Text>
+                                        <Text style={{ color: '#b4b4b4', fontWeight: 'bold'}}>Pallet: {palletInput}</Text>
+                                        <Text style={{ color: '#b4b4b4', fontWeight: 'bold'}}>QTY: {selectedItem.qty}</Text>
+                                        <Text style={{ color: '#b4b4b4', fontWeight: 'bold'}}>SKU: {selectedItem.sku}</Text>
                                     </View>
                                 <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-around', marginTop: rs(10), marginBottom: rs(10)}}>
                                     <TouchableOpacity style={{width: '50%', alignSelf: 'center', backgroundColor: `${fromPalletColor}`, borderWidth: 1, borderRadius: rs(10), borderTopRightRadius: 0, borderEndEndRadius: 0, borderpadding: rs(10), padding: rs(10)}}
@@ -298,6 +333,7 @@ const Restocking = ({}) => {
                                 onKeyPress={(e) => {
                                     if (e.nativeEvent.key === 'Enter') {
                                         // setEnterSource(true);
+                                        setDestLaneEntered(true);
                                     }
                                 }}
                             />
@@ -393,9 +429,9 @@ const Restocking = ({}) => {
                                     }}/>
                                     </>}
                             {fromPallet && <TouchableOpacity 
-                                style={{backgroundColor: '#1D9E75', width: '90%', padding: rs(10), borderRadius: rs(10), marginHorizontal: 'auto', marginTop: rs(10)}}
+                                style={{backgroundColor: '#1D9E75', width: '90%', padding: rs(10), borderRadius: rs(10), marginHorizontal: 'auto', marginTop: rs(10), marginBottom: rs(60)}}
                                 onPress={() => {
-                                    if (palletLoc.length > 0 && qtyInput > 0) {
+                                    if (destLaneEntered && qtyInput > 0) {
                                         loadToBin();
                                     }
                                 }}
@@ -404,9 +440,9 @@ const Restocking = ({}) => {
                             </TouchableOpacity>}
 
                                 {toPallet && <TouchableOpacity 
-                                style={{backgroundColor: '#1D9E75', width: '90%', padding: rs(10), borderRadius: rs(10), marginHorizontal: 'auto', marginTop: rs(10)}}
+                                style={{backgroundColor: '#1D9E75', width: '90%', padding: rs(10), borderRadius: rs(10), marginHorizontal: 'auto', marginTop: rs(10), marginBottom: rs(60)}}
                                 onPress={() => {
-                                    if (palletLoc.length > 0 && qtyInput > 0) {
+                                    if (destLaneEntered && qtyInput > 0) {
                                         loadToPallet();
                                     }
                                 }}
@@ -432,7 +468,7 @@ const Restocking = ({}) => {
                 <View style={{ backgroundColor: '#242424', borderColor: '#5f5f5f', borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(20)}}>
                     <View style={{width: '100%', justifyContent: 'space-between'}}>
                         <Text style={{color: '#979595', marginLeft: 10, fontSize: rs(14)}}>Staging Lane</Text>
-                        {stagingLoc.length === 0 && <View>
+                        {!stagingEntered && <View>
                                     <TextInput 
                                         ref={stagingRef}
                                         placeholder='|||| Scan / Enter staging lane' placeholderTextColor={'#919191'} 
@@ -447,6 +483,7 @@ const Restocking = ({}) => {
                                         onKeyPress={(e) => {
                                             if (e.nativeEvent.key === 'Enter') {
                                                 // setEnterSource(true);
+                                                setStagingEntered(true);
                                             }
                                         }}
                                     />
@@ -454,7 +491,7 @@ const Restocking = ({}) => {
                             </View>
                             }
                             {
-                                stagingLoc.length > 0 && <View>
+                                stagingEntered && <View>
                                     <Text style={{color: 'white', fontSize: rs(20), fontWeight: 'bold', marginTop: 10}}>{stagingLoc}</Text>
                                     <TextInput 
                                         ref={palletRef}
@@ -470,12 +507,13 @@ const Restocking = ({}) => {
                                         onKeyPress={(e) => {
                                             if (e.nativeEvent.key === 'Enter') {
                                                 // setEnterSource(true);
+                                                setPalletEntered(true);
                                             }
                                     }}/>
                                     </View>
                             }
                                 <View>
-                                    {palletInput.length > 0 && <View>
+                                    {palletEntered && <View>
                                         <TextInput 
                                             ref={stagingRef}
                                             placeholder='|||| Scan Item' placeholderTextColor={'#919191'} 
@@ -490,11 +528,12 @@ const Restocking = ({}) => {
                                             onKeyPress={(e) => {
                                                 if (e.nativeEvent.key === 'Enter') {
                                                     // setEnterSource(true);
+                                                    setItemEntered(true);
                                                 }
                                             }}
                                         />
                                     </View>}
-                                    {upcInput.length > 0 && <View>{palletItems.map((item, i ) => {
+                                    {itemEntered && <View>{palletItems.map((item, i ) => {
                                        return <TouchableOpacity 
                                                 key={`item-${item.palletDataId ?? i}`} style={{ backgroundColor: '#2b2b2b', borderColor: '#5f5f5f', borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(20)}}
                                                 onPress={() => {
@@ -518,12 +557,11 @@ const Restocking = ({}) => {
                                                     </View>
                                                 )}
                                             </View>
-                                            <Text style={{ color: 'white', fontWeight: 'bold'}}>QTY: {item.quantity}</Text>
+                                            <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around'}}>
+                                                <Text style={{ color: 'white', fontWeight: 'bold', fontSize: rs(20)}}>{item.primaryBin}</Text>
+                                                <Text style={{ color: 'white', fontWeight: 'bold', fontSize: rs(20)}}>{item.secondaryBin}</Text>
+                                            </View>
                                             <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-around', marginTop: 10, flexWrap: 'wrap'}}>
-                                                <View>
-                                                    <Text style={[styles.palletCol, { fontSize: rs(12) }]}>LOCATION</Text>
-                                                    <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{item.currentBin}</Text>
-                                                </View>
                                                 <View>
                                                     <Text style={[styles.palletCol, { fontSize: rs(12) }]}>SKU</Text>
                                                     <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{item.sku}</Text>
@@ -531,6 +569,10 @@ const Restocking = ({}) => {
                                                 <View>
                                                     <Text style={[styles.palletCol, { fontSize: rs(12) }]}>EXP</Text>
                                                     <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{item.expiryDate}</Text>
+                                                </View>
+                                                <View>
+                                                    <Text style={[styles.palletCol, { fontSize: rs(12) }]}>QTY</Text>
+                                                    <Text style={[styles.palletRow, { fontSize: rs(15) }]}>{item.quantity}</Text>
                                                 </View>
                                             </View>
                                         </TouchableOpacity>
