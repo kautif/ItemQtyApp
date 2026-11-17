@@ -23,6 +23,8 @@ const MovePallet = ({}) => {
     const [stagingEntered, setStagingEntered] = useState(false);
     const [getPalletErrVisible, setGetPalletErrVisible] = useState(false); 
     const [movePalletErrVisible, setMovePalletErrVisible] = useState(false); 
+    const [stagingErrVisible, setStagingErrVisible] = useState(false);
+    const [stagingErrMsg, setStagingErrMsg] = useState("");
     const [palletErr, setPalletErr] = useState("");
 
 
@@ -137,6 +139,25 @@ const MovePallet = ({}) => {
                     </View>
                 </View>
             </Modal>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={stagingErrVisible}
+                onRequestClose={() => {
+                    
+            }}>
+                <View style={{backgroundColor: '#000000bb', width: '70%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(125), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
+                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{stagingErrMsg}</Text>
+                    <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
+                        <TouchableOpacity onPress={() => {
+                            setStagingErrVisible(false);
+                            // router.replace("/menu");
+                        }}>
+                            <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(20), fontWeight: 'bold'}}>Close</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
             <ScrollView>
                 {!palletEntered && <TextInput 
                     ref={palletRef}
@@ -192,9 +213,14 @@ const MovePallet = ({}) => {
                                                     }}/>
                                     }
                                     {
-                                        (currentBin.startsWith('FRK-') || currentBin.startsWith('FORKLIFT')) && <TouchableOpacity disabled={!stagingEntered}
+                                        (currentBin.startsWith('FRK-') || currentBin.startsWith('FORKLIFT')) && <TouchableOpacity
                                         onPress={() => {
-                                        movePallet();
+                                            if (stagingEntered) {
+                                                movePallet();
+                                            } else {
+                                                setStagingErrMsg("Location is missing");
+                                                setStagingErrVisible(true);
+                                            }
                                     }} style={{ backgroundColor: '#1dac7f', paddingBottom: 20, borderRadius: 20}}>
                                         <Text style={{color: 'white', fontSize: 20, textAlign: 'center', fontWeight: 'bold', marginTop: 15}}>🛣️Unload forklift to lane</Text>
                                     </TouchableOpacity>

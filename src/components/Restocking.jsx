@@ -52,8 +52,12 @@ const Restocking = ({}) => {
     let yearOptions = [];
     const [selected, setSelected] = useState();
 
+
     const [modalVisible, setModalVisible] = useState(false);
     const [itemVisible, setItemVisible] = useState(false);
+
+    const [restockErrVisible, setRestockErrVisible] = useState(false);
+    const [restockErrMsg, setRestockErrMsg] = useState("");
 
     const employeeId = useSelector(state => state.items.employeeId);
 
@@ -240,11 +244,30 @@ const Restocking = ({}) => {
             <Modal
                 animationType="slide"
                 transparent={true}
+                visible={restockErrVisible}
+                onRequestClose={() => {
+                    
+            }}>
+                <View style={{backgroundColor: '#000000bb', width: '70%', marginHorizontal: 'auto', marginTop: hp(22), minHeight: rs(125), padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
+                    <Text style={{color: '#fff', textAlign: 'center', fontWeight: 'bold', fontSize: rs(20)}}>{restockErrMsg}</Text>
+                    <View style={{backgroundColor: '#ff0000', width: rs(100), padding: rs(10), borderRadius: rs(8), marginHorizontal: 'auto', marginTop: rs(20)}}>
+                        <TouchableOpacity onPress={() => {
+                            setRestockErrMsg("");
+                            setRestockErrVisible(false);
+                        }}>
+                            <Text style={{color: '#fff', textAlign: 'center', fontSize: rs(20), fontWeight: 'bold'}}>Close</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+            <Modal
+                animationType="slide"
+                transparent={true}
                 visible={itemVisible}
                 onRequestClose={() => {
                     
             }}>
-                <View style={{position: 'relative', top: -125, backgroundColor: '#000000bb', width: '100%', marginHorizontal: 'auto', marginTop: hp(27), minHeight: rs(125), height: 550, padding: rs(10), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
+                <View style={{position: 'relative', top: -125, backgroundColor: '#000000bb', width: '100%', marginTop: hp(27), minHeight: rs(125), height: 550, padding: rs(10), paddingBottom: rs(50), borderRadius: rs(10), borderWidth: 1, borderColor: '#808080'}}>
                     <ScrollView>
                         {itemSelected && <View>
                             <View key={`item-3`} style={{ backgroundColor: '#2b2b2b', borderRadius: rs(10), padding: rs(10), marginTop: rs(10), marginBottom: rs(15)}}>
@@ -271,6 +294,7 @@ const Restocking = ({}) => {
                                     onPress={() => {
                                         setFromPallet(false);
                                         setToPallet(true);
+                                        setShowCalendar(false);
                                     }}>
                                         <Text style={{color: '#dddcdc'}}>Load Back to Pallet</Text>
                                     </TouchableOpacity>
@@ -338,6 +362,16 @@ const Restocking = ({}) => {
                                 }}
                             />
 
+                            {(toPallet && showCalendar === false) && <TouchableOpacity 
+                                style={{backgroundColor: '#1D9E75', width: '90%', padding: rs(10), borderRadius: rs(10), marginHorizontal: 'auto', marginTop: rs(10)}}
+                                onPress={() => {
+                                    console.log("loadToPallet: ", selected);
+                                    setShowCalendar(true);
+                                }}
+                                >
+                                <Text style={{color: 'white', textAlign: 'center', fontWeight: 'bold'}}>Enter Expiration</Text>
+                            </TouchableOpacity>}
+
                             {/* {toPallet && <TextInput 
                                 ref={palletIdRef}
                                 placeholder='|||| Scan Pallet' placeholderTextColor={'#919191'} 
@@ -358,7 +392,7 @@ const Restocking = ({}) => {
 
                             {toPallet && <>
                                 <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '100%'}}>
-                                    <View style={{width: '50%'}}>
+                                    {showCalendar && <View style={{width: '50%'}}>
                                         <Text style={{ fontSize: rs(18), color: '#fff', textAlign: 'center', marginBottom: 10}}>Year</Text>
                                         <Dropdown 
                                             dropdownStyle={{
@@ -379,8 +413,8 @@ const Restocking = ({}) => {
                                                 setDefaultDate(`${val}-${selectedMonth + 1}-${selectedDay}`)
                                             }}
                                         />
-                                    </View>
-                                    <View style={{width: '50%'}}>
+                                    </View>}
+                                    {showCalendar && <View style={{width: '50%'}}>
                                         <Text style={{ fontSize: rs(18), color: '#fff', textAlign: 'center', marginBottom: 10}}>Month</Text>
                                         <Dropdown 
                                             dropdownStyle={{
@@ -414,9 +448,9 @@ const Restocking = ({}) => {
                                                 setDefaultDate(`${selectedYear}-${val + 1}-${selectedDay}`)
                                             }}
                                         />
-                                    </View>
+                                    </View>}
                                 </View>
-                                    <Calendar 
+                                    {showCalendar && <Calendar 
                                     current={defaultDate}
                                     key={defaultDate}
                                     onDayPress={(day) => {
@@ -426,13 +460,18 @@ const Restocking = ({}) => {
                                     }}
                                     markedDates={{
                                         [selected]: {selected: true}
-                                    }}/>
+                                    }}/>}
                                     </>}
                             {fromPallet && <TouchableOpacity 
                                 style={{backgroundColor: '#1D9E75', width: '90%', padding: rs(10), borderRadius: rs(10), marginHorizontal: 'auto', marginTop: rs(10), marginBottom: rs(60)}}
                                 onPress={() => {
                                     if (destLaneEntered && qtyInput > 0) {
                                         loadToBin();
+                                    }
+
+                                    if (!destLaneEntered || qtyInput === 0 || palletLoc.length === 0) {
+                                        setRestockErrMsg("quantity or location are empty");
+                                        setRestockErrVisible(true);
                                     }
                                 }}
                                 >
@@ -442,8 +481,14 @@ const Restocking = ({}) => {
                                 {toPallet && <TouchableOpacity 
                                 style={{backgroundColor: '#1D9E75', width: '90%', padding: rs(10), borderRadius: rs(10), marginHorizontal: 'auto', marginTop: rs(10), marginBottom: rs(60)}}
                                 onPress={() => {
-                                    if (destLaneEntered && qtyInput > 0) {
+                                    console.log("loadToPallet: ", selected);
+                                    if (destLaneEntered && qtyInput > 0 && selected !== undefined) {
                                         loadToPallet();
+                                    }
+
+                                    if (!destLaneEntered || qtyInput === 0 || selected === undefined) {
+                                        setRestockErrMsg("Location, quantity and date must be entered or selected");
+                                        setRestockErrVisible(true);
                                     }
                                 }}
                                 >
@@ -499,7 +544,7 @@ const Restocking = ({}) => {
                                         style={[styles.skuInput, { padding: rs(25), fontSize: rs(20), height: rs(75), borderRadius: rs(15), marginTop: 20 }]} 
                                         showSoftInputOnFocus={false} 
                                         submitBehavior="submit"
-                                        autoFocus={true} 
+                                        autoFocus={true}
                                         value={palletInput} 
                                         onChangeText={(text) => {
                                             setPalletInput(text);

@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
         width: '100%',
         flexWrap: 'wrap',
         position: 'relative',
-        top: 270,
+        top: 240,
         // Anchored to the bottom-left as a proportion of the screen instead
         // of a fixed top/left offset, so it lands in roughly the same spot
         // on any screen size.
