@@ -509,6 +509,7 @@ const Restocking = ({}) => {
                     </ScrollView>
                 </View>
             </Modal>
+            <Text style={{color: '#fff', fontSize: rs(30), textAlign: 'center'}}>Restocking</Text>
             <ScrollView style={{marginBottom: 50}}>
                 <View style={{ backgroundColor: '#242424', borderColor: '#5f5f5f', borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(20)}}>
                     <View style={{width: '100%', justifyContent: 'space-between'}}>

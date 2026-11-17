@@ -196,6 +196,7 @@ const Bins = ({}) => {
                     </View>
                 </View>
             </Modal>
+            <Text style={{color: '#fff', fontSize: rs(30), textAlign: 'center'}}>Bin to Bin</Text>
             <ScrollView style={{marginBottom: 80}}>
                 <TextInput 
                     ref={fromBinRef}

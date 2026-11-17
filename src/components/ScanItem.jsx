@@ -465,6 +465,7 @@ const ScanItem = ({}) => {
                     </View>
                 </View>
             </Modal>
+                <Text style={{color: '#fff', fontSize: rs(30), textAlign: 'center'}}>Item Details</Text>
                 {!itemObj &&
                  <View style={{flex: 1, justifyContent: 'center', paddingHorizontal: '5%'}}>
                     <TextInput 

@@ -158,6 +158,7 @@ const MovePallet = ({}) => {
                     </View>
                 </View>
             </Modal>
+            <Text style={{color: '#fff', fontSize: rs(30), textAlign: 'center'}}>Move Pallet</Text>
             <ScrollView>
                 {!palletEntered && <TextInput 
                     ref={palletRef}
