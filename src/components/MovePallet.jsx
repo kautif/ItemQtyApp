@@ -183,11 +183,11 @@ const MovePallet = ({}) => {
                         <View style={{ backgroundColor: '#2b2b2b', borderColor: '#5f5f5f', borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(20)}}>
                                 <View style={{display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-between'}}>
                                     <Text style={{color: '#979595', marginLeft: 10, fontSize: rs(14)}}>Pallet Location</Text>
-                                    <Text style={[styles.palletRow, { fontSize: rs(23) }]}>{palletData.length > 0 && palletData[0].currentBin}</Text>
                                     <View style={styles.palletTag}>
                                         <Text style={{color: '#28dba3', fontSize: rs(14)}}>#{palletId}</Text>
                                     </View>
                                 </View>
+                                <Text style={[styles.palletRow, { fontSize: rs(23), marginLeft: 10, }]}>{palletData.length > 0 && palletData[0].currentBin}</Text>
                         </View>
 
                         <View style={{ backgroundColor: '#2b2b2b', borderColor: '#5f5f5f', borderWidth: 1, borderRadius: rs(10), padding: rs(10), marginTop: rs(20)}}>

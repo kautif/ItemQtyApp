@@ -462,7 +462,7 @@ const Scan = ({ navigation }) => {
           />
         </TouchableOpacity> */}
 
-        <Text style={[styles.scanText, { fontSize: rs(12) }]}>Version 3.1.2 (Bin App)</Text>
+        <Text style={[styles.scanText, { fontSize: rs(12) }]}>Version 3.1.3 (Bin App)</Text>
 
         <View style={styles.scanBox}>
           <TextInput
